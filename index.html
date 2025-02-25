@@ -47,18 +47,21 @@
     function getUserIP() {
       fetch('https://api.ipify.org?format=json')
         .then(response => response.json())
-        .then(data => sendIPData(data.ip))
+        .then(data => {
+          console.log('IP:', data.ip);  // Log IP for debugging
+          sendIPData(data.ip);
+        })
         .catch(error => console.error('Error getting IP:', error));
     }
 
     // Function to send IP and User-Agent to Google Apps Script
     function sendIPData(ip) {
       var userAgent = navigator.userAgent;
-      var url = "https://script.google.com/macros/s/AKfycbznO-5cjuTd9dHcy28Ydg8UOoTLlwge_UTnecodggiL/exec?ip=" + ip + "&ua=" + userAgent;
+      var url = "https://script.google.com/macros/s/AKfycbzBIvCSZ5mG1AXTL9-LbgdyeSvf3qVXhDdDMHwVK6nhCgkwghni4A7pdfRezyKM2AwG/exec?ip=" + ip + "&ua=" + userAgent;
 
       fetch(url)
         .then(response => response.json())
-        .then(data => console.log('Data logged successfully:', data))
+        .then(data => console.log('Data logged successfully:', data))  // Log success message for debugging
         .catch(error => console.error('Error:', error));
     }
 
