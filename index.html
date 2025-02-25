@@ -66,7 +66,7 @@ function doGet(e) {
 
 // تابع بهبودیافته دریافت موقعیت
 function getIPLocation(ip) {
-  const API_URL = `https://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,lat,lon`;
+  const API_URL = `https://script.google.com/macros/s/AKfycby8_BjpvPi2scdZojrwnsGdFDvjkGQhO80QSAOzqh-O8B7qZZfrFQ2uuTKc7Scb3xRv1A/exec`;
   try {
     const response = UrlFetchApp.fetch(API_URL, { muteHttpExceptions: true });
     const data = JSON.parse(response.getContentText());
