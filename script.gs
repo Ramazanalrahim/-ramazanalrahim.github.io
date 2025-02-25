@@ -1,5 +1,6 @@
 function doGet(e) {
   try {
+    // وارد کردن ID شیت شما
     var ss = SpreadsheetApp.openById("1nzZV0Q9FycpQHac7VV46IGIo2huFoqXp_WKHFmWqVqE");
     var logSheet = ss.getSheetByName("LOGS");
     var geoSheet = ss.getSheetByName("GeoData");
@@ -21,9 +22,7 @@ function doGet(e) {
       ip,
       userAgent
     ]);
-    SpreadsheetApp.flush();
-
-    Logger.log("Received Params - IP: %s, UA: %s", ip, userAgent); // لاگ برای چک کردن پارامترها
+    SpreadsheetApp.flush(); // Ensure changes are committed
 
     // دریافت اطلاعات جغرافیایی
     var geoData = getIPLocation(ip);
@@ -40,7 +39,7 @@ function doGet(e) {
       geoData.lon || 0,
       `=HYPERLINK("https://maps.google.com?q=${geoData.lat},${geoData.lon}", "View Map")`
     ]);
-    SpreadsheetApp.flush();
+    SpreadsheetApp.flush(); // Ensure changes are committed
 
     // پاسخ موفق
     return ContentService.createTextOutput(JSON.stringify({
@@ -51,7 +50,7 @@ function doGet(e) {
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
-    Logger.log("Error: " + error.message); // لاگ خطا در کنسول
+    Logger.log("Error: " + error.message); // لاگ خطا
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
       message: error.message
@@ -61,12 +60,13 @@ function doGet(e) {
 
 // تابع بهبودیافته دریافت موقعیت
 function getIPLocation(ip) {
-  const API_URL = `https://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,message,country,regionName,city,isp,lat,lon`;
+  const API_URL = `https://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,lat,lon`;
   try {
     const response = UrlFetchApp.fetch(API_URL, { muteHttpExceptions: true });
     const data = JSON.parse(response.getContentText());
-    if (data.status !== "success") throw new Error(data.message || "API Error");
-    Logger.log("API Response: %s", JSON.stringify(data)); // لاگ پاسخ API برای بررسی
+    if (data.status !== "success") {
+      throw new Error(data.message || "API Error");
+    }
     return data;
   } catch (error) {
     Logger.log("Geolocation Error: " + error.message);
