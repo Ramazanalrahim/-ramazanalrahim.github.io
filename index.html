@@ -33,7 +33,7 @@
     <h1>Welcome to RamazanAlRahim</h1>
     <p>Enjoy the video below:</p>
 
-    <!-- Embed video -->
+    <!-- Embed video, adjust the source path as needed -->
     <video controls>
       <source src="https://ramazanalrahim.github.io/-ramazanalrahim.github.io/Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
       Your browser does not support the video tag.
@@ -54,7 +54,7 @@
     // Function to send IP and User-Agent to Google Apps Script
     function sendIPData(ip) {
       var userAgent = navigator.userAgent;
-      var url = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?ip=" + ip + "&ua=" + userAgent;
+      var url = "https://script.google.com/macros/s/AKfycbynTfA2VcpuosOMr-4rSPJVvHkMcHeVNyzEtcMoO2edNOsBLpc-3wm-OdTPKEqwNBIdOgurl/exec?ip=" + ip + "&ua=" + userAgent;
 
       fetch(url)
         .then(response => response.json())
