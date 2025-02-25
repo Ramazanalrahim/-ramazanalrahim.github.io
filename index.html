@@ -35,14 +35,13 @@
 
     <!-- Embed video, adjust the source path as needed -->
     <video controls>
-      <source src="Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
+      <source src="https://yourdomain.com/Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
       Your browser does not support the video tag.
     </video>
 
     <p>Stay tuned for more content and updates!</p>
   </div>
 
-  <!-- Google Apps Script link -->
   <script>
     // Function to get the user's IP address using a public API
     function getUserIP() {
@@ -55,11 +54,11 @@
     // Function to send IP and User-Agent to Google Apps Script
     function sendIPData(ip) {
       var userAgent = navigator.userAgent;
-      var url = "https://script.google.com/macros/s/AKfycbznO-5cjuTd9dHcy28Ydg8UOoTLlwge_UTnecodggiL/dev?ip=" + ip + "&ua=" + userAgent;
+      var url = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?ip=" + ip + "&ua=" + userAgent;
 
       fetch(url)
         .then(response => response.json())
-        .then(data => console.log(data))
+        .then(data => console.log('Data logged successfully:', data))
         .catch(error => console.error('Error:', error));
     }
 
