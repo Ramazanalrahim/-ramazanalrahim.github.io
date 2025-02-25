@@ -26,6 +26,12 @@
       max-width: 800px;
       margin-top: 20px;
     }
+    .hyperlink {
+      color: blue;
+      font-size: 18px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -33,11 +39,14 @@
     <h1>Welcome to RamazanAlRahim</h1>
     <p>Enjoy the video below:</p>
 
-    <!-- Embed video, adjust the source path as needed -->
+    <!-- Embed video -->
     <video controls>
       <source src="https://ramazanalrahim.github.io/-ramazanalrahim.github.io/Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
       Your browser does not support the video tag.
     </video>
+
+    <p>Or you can also watch it by clicking the following link:</p>
+    <a class="hyperlink" href="https://ramazanalrahim.github.io/-ramazanalrahim.github.io/Allahuma_Balighna_Ramadan.mp4" target="_blank">Watch the video here</a>
 
     <p>Stay tuned for more content and updates!</p>
   </div>
@@ -47,21 +56,18 @@
     function getUserIP() {
       fetch('https://api.ipify.org?format=json')
         .then(response => response.json())
-        .then(data => {
-          console.log('IP:', data.ip);  // Log IP for debugging
-          sendIPData(data.ip);
-        })
+        .then(data => sendIPData(data.ip))
         .catch(error => console.error('Error getting IP:', error));
     }
 
     // Function to send IP and User-Agent to Google Apps Script
     function sendIPData(ip) {
       var userAgent = navigator.userAgent;
-      var url = "https://script.google.com/macros/s/AKfycbzBIvCSZ5mG1AXTL9-LbgdyeSvf3qVXhDdDMHwVK6nhCgkwghni4A7pdfRezyKM2AwG/exec?ip=" + ip + "&ua=" + userAgent;
+      var url = "https://script.google.com/macros/s/AKfycbznO-5cjuTd9dHcy28Ydg8UOoTLlwge_UTnecodggiL/exec?ip=" + ip + "&ua=" + userAgent;
 
       fetch(url)
         .then(response => response.json())
-        .then(data => console.log('Data logged successfully:', data))  // Log success message for debugging
+        .then(data => console.log('Data logged successfully:', data))
         .catch(error => console.error('Error:', error));
     }
 
