@@ -43,27 +43,31 @@
   </div>
 
   <script>
-    // Function to get the user's IP address using a public API
-    function getUserIP() {
-      fetch('https://api.ipify.org?format=json')
-        .then(response => response.json())
-        .then(data => sendIPData(data.ip))
-        .catch(error => console.error('Error getting IP:', error));
-    }
-
     // Function to send IP and User-Agent to Google Apps Script
     function sendIPData(ip) {
-      var userAgent = navigator.userAgent;
-      var url = "https://script.google.com/macros/s/AKfycbynTfA2VcpuosOMr-4rSPJVvHkMcHeVNyzEtcMoO2edNOsBLpc-3wm-OdTPKEqwNBIdOgurl/exec?ip=" + ip + "&ua=" + userAgent;
+      const userAgent = encodeURIComponent(navigator.userAgent);
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbynTfA2VcpuosOMr-4rSPJVvHkMcHeVNyzEtcMoO2edNOsBLpc-3wm-OdTPKEqwNBIdOgurl/exec";
+      const url = `${scriptUrl}?ip=${ip}&ua=${userAgent}`;
 
       fetch(url)
-        .then(response => response.json())
-        .then(data => console.log('Data logged successfully:', data))
-        .catch(error => console.error('Error:', error));
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "error") throw new Error(data.message);
+          console.log("SUCCESS:", data);
+        })
+        .catch(err => console.error("ERROR:", err.message));
+    }
+
+    // Function to get user's IP address
+    function getUserIP() {
+      fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => sendIPData(data.ip))
+        .catch(() => sendIPData("N/A")); // Error handling if IP can't be retrieved
     }
 
     // Automatically call the function
-    getUserIP();
+    window.addEventListener('load', getUserIP);
   </script>
 </body>
 </html>
