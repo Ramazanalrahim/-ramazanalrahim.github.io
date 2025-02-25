@@ -23,13 +23,19 @@ function doGet(e) {
     logSheet.appendRow([date, time, ip, userAgent]);
     SpreadsheetApp.flush(); // Ensure changes are committed
 
+    // ثبت داده‌های جغرافیایی
+    var geoData = getIPLocation(ip);
+    var mapLink = "https://www.google.com/maps/search/?api=1&query=" + geoData.lat + "," + geoData.lon;
+    geoSheet.appendRow([ip, geoData.country, geoData.region, geoData.city, geoData.isp, geoData.lat, geoData.lon, mapLink]);
+    SpreadsheetApp.flush(); // Ensure changes are committed
+
     Logger.log("📌 IP logged: " + ip);
 
     // پاسخ موفقیت‌آمیز
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       message: "✅ IP successfully logged",
-      data: { ip, userAgent }
+      data: { ip, userAgent, geoData }
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
@@ -74,4 +80,30 @@ function formatSheets(logSheet, geoSheet) {
   geoDataRange.setHorizontalAlignment("center");
 
   Logger.log("✅ Sheet formatting applied.");
+}
+
+// Retrieve GeoData from IP
+function getIPLocation(ip) {
+  try {
+    var response = UrlFetchApp.fetch("http://ip-api.com/json/" + ip);
+    var json = JSON.parse(response.getContentText());
+
+    if (json.status === "fail") {
+      Logger.log("❌ Failed to retrieve location data for: " + ip);
+      return { country: "Error", region: "Error", city: "Error", isp: "Error", lat: "0", lon: "0" };
+    }
+
+    return {
+      country: json.country || "Unknown",
+      region: json.regionName || "Unknown",
+      city: json.city || "Unknown",
+      isp: json.isp || "Unknown",
+      lat: json.lat || "0",
+      lon: json.lon || "0"
+    };
+
+  } catch (error) {
+    Logger.log("⚠️ API Error: " + error.toString());
+    return { country: "Error", region: "Error", city: "Error", isp: "Error", lat: "0", lon: "0" };
+  }
 }
