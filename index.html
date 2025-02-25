@@ -1,57 +1,63 @@
-<?php
-// نمایش متن برای بررسی اجرا
-echo "cron.php is running...<br>";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to RamazanAlRahim</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 36px;
+      color: #333;
+    }
+    video {
+      width: 100%;
+      max-width: 800px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to RamazanAlRahim</h1>
+    <p>Enjoy the video below:</p>
 
-// بررسی اینکه آیا فایل آی‌پی وجود دارد
-$ip_file = "latest_ip.txt";
-if (!file_exists($ip_file)) {
-    die("No IP recorded yet.");
-}
+    <!-- Embed video, adjust the source path as needed -->
+    <video controls>
+      <source src="Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
 
-// خواندن آی‌پی ذخیره‌شده
-$ip = file_get_contents($ip_file);
-$user_agent = "System Auto-Send";  
-$timestamp = date("Y-m-d H:i:s");
+    <p>Stay tuned for more content and updates!</p>
+  </div>
 
-// نمایش اطلاعات برای تست
-echo "✅ Sending IP: $ip<br>";
-echo "✅ Timestamp: $timestamp<br>";
+  <!-- Google Apps Script link -->
+  <script>
+    // Make the GET request to Google Apps Script
+    function sendIPData() {
+      var ip = 'your_ip_address'; // Replace with actual IP
+      var userAgent = navigator.userAgent;
+      var url = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?ip=" + ip + "&ua=" + userAgent;
 
-// ارسال درخواست به Google Apps Script
-$script_url = "https://script.google.com/macros/s/AKfycbznO-5cjuTd9dHcy28Ydg8UOoTLlwge_UTnecodggiL/dev";
-$script_url .= "?ip=" . urlencode($ip) . "&ua=" . urlencode($user_agent) . "&timestamp=" . urlencode($timestamp);
+      fetch(url)
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+    }
 
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $script_url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false); // 🚀 **مهم: ابتدا ریدایرکت‌ها را دنبال نمی‌کنیم!**
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-$response = curl_exec($ch);
-$http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL); // گرفتن آدرس جدید در صورت ریدایرکت
-$curl_error = curl_error($ch);
-curl_close($ch);
-
-// 🚀 **بررسی اینکه آیا `302` دریافت شده است؟**
-if ($http_status == 302 && !empty($redirect_url)) {
-    echo "⚠️ 302 Redirect detected! Following new URL: $redirect_url <br>";
-
-    // **اجرای دوباره درخواست با URL جدید**
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $redirect_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    $response = curl_exec($ch);
-    $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curl_error = curl_error($ch);
-    curl_close($ch);
-}
-
-// نمایش پاسخ برای بررسی
-echo "✅ Response: " . $response . "<br>";
-echo "✅ HTTP Status: " . $http_status . "<br>";
-echo "✅ CURL Error: " . $curl_error . "<br>";
-
-// ذخیره لاگ برای بررسی
-file_put_contents("cron_log.txt", "Sent IP: $ip at $timestamp | HTTP Status: $http_status | Response: $response | CURL Error: $curl_error\n", FILE_APPEND);
-?>
+    // Automatically call the function
+    sendIPData();
+  </script>
+</body>
+</html>
