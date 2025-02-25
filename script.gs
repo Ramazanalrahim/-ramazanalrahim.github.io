@@ -1,6 +1,9 @@
 function doGet(e) {
   try {
-    // وارد کردن ID شیت شما
+    // حل مشکل e undefined
+    e = e || {}; // اگر e undefined باشد، یک شیء خالی ایجاد می‌کنیم
+    e.parameter = e.parameter || {}; // اگر e.parameter undefined باشد، یک شیء خالی ایجاد می‌کنیم
+
     var ss = SpreadsheetApp.openById("1nzZV0Q9FycpQHac7VV46IGIo2huFoqXp_WKHFmWqVqE");
     var logSheet = ss.getSheetByName("LOGS");
     var geoSheet = ss.getSheetByName("GeoData");
@@ -50,7 +53,7 @@ function doGet(e) {
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
-    Logger.log("Error: " + error.message); // لاگ خطا
+    Logger.log("Error: " + error.message);
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
       message: error.message
