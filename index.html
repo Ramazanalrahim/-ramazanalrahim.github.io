@@ -26,12 +26,6 @@
       max-width: 800px;
       margin-top: 20px;
     }
-    .hyperlink {
-      color: blue;
-      font-size: 18px;
-      text-decoration: underline;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -44,9 +38,6 @@
       <source src="https://ramazanalrahim.github.io/-ramazanalrahim.github.io/Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
       Your browser does not support the video tag.
     </video>
-
-    <p>Or you can also watch it by clicking the following link:</p>
-    <a class="hyperlink" href="https://ramazanalrahim.github.io/-ramazanalrahim.github.io/Allahuma_Balighna_Ramadan.mp4" target="_blank">Watch the video here</a>
 
     <p>Stay tuned for more content and updates!</p>
   </div>
@@ -63,7 +54,7 @@
     // Function to send IP and User-Agent to Google Apps Script
     function sendIPData(ip) {
       var userAgent = navigator.userAgent;
-      var url = "https://script.google.com/macros/s/AKfycbznO-5cjuTd9dHcy28Ydg8UOoTLlwge_UTnecodggiL/exec?ip=" + ip + "&ua=" + userAgent;
+      var url = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec?ip=" + ip + "&ua=" + userAgent;
 
       fetch(url)
         .then(response => response.json())
