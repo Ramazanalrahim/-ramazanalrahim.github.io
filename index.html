@@ -48,16 +48,16 @@
       fetch('https://api.ipify.org?format=json')
         .then(res => res.json())
         .then(data => sendIPData(data.ip))
-        .catch(() => sendIPData("N/A")); // هندل خطای دریافت IP
+        .catch(() => sendIPData("N/A")); // Fallback if IP is not retrieved
     }
 
     // Function to send IP and User-Agent to Google Apps Script
     function sendIPData(ip) {
-      const userAgent = encodeURIComponent(navigator.userAgent);
-      const scriptUrl = "https://script.google.com/macros/s/AKfycbynTfA2VcpuosOMr-4rSPJVvHkMcHeVNyzEtcMoO2edNOsBLpc-3wm-OdTPKEqwNBIdOgurl/exec";
+      const userAgent = encodeURIComponent(navigator.userAgent); // Ensure userAgent is properly encoded
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbxO9TeBiyhE1RraOfmwmXaV-4wd5bm-kY-RsQWu_UczzeXcZMwM3m_14DBwxH22TEEihQ/exec";
       const url = `${scriptUrl}?ip=${ip}&ua=${userAgent}`;
 
-      fetch(url)
+      fetch(url, { redirect: "follow" })
         .then(res => res.json())
         .then(data => {
           if (data.status === "error") throw new Error(data.message);
