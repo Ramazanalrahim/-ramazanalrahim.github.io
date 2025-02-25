@@ -1,5 +1,6 @@
 function doGet(e) {
   try {
+    // وارد کردن ID شیت شما
     var ss = SpreadsheetApp.openById("1nzZV0Q9FycpQHac7VV46IGIo2huFoqXp_WKHFmWqVqE");
     var logSheet = ss.getSheetByName("LOGS");
     var geoSheet = ss.getSheetByName("GeoData");
@@ -11,33 +12,28 @@ function doGet(e) {
     // Apply formatting to sheets (executed only once)
     formatSheets(logSheet, geoSheet);
 
-    // Get input parameters
+    // دریافت پارامترهای ورودی از URL
     var ip = e.parameter.ip || "Unknown";
     var userAgent = e.parameter.ua || "Unknown";
     var timestamp = new Date();
-    var date = timestamp.toISOString().split("T")[0]; // YYYY-MM-DD
-    var time = timestamp.toTimeString().split(" ")[0]; // HH:MM:SS
+    var date = timestamp.toISOString().split("T")[0]; // تاریخ: YYYY-MM-DD
+    var time = timestamp.toTimeString().split(" ")[0]; // زمان: HH:MM:SS
 
-    // Extract device and browser details
-    var deviceInfo = detectDevice(userAgent);
-    
-    // Log IP in LOGS sheet
-    logSheet.appendRow([date, time, ip, deviceInfo.device, deviceInfo.browser, deviceInfo.os]);
+    // ثبت داده‌ها در شیت LOGS
+    logSheet.appendRow([date, time, ip, userAgent]);
+    SpreadsheetApp.flush(); // Ensure changes are committed
 
     Logger.log("📌 IP logged: " + ip);
 
-    // Retrieve and store GeoData
-    var geoData = getIPLocation(ip);
-    var mapLink = "https://www.google.com/maps/search/?api=1&query=" + geoData.lat + "," + geoData.lon;
-    geoSheet.appendRow([ip, geoData.country, geoData.region, geoData.city, geoData.isp, geoData.lat, geoData.lon, mapLink]);
-
+    // پاسخ موفقیت‌آمیز
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       message: "✅ IP successfully logged",
-      data: { ip, userAgent, deviceInfo, geoData }
+      data: { ip, userAgent }
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
+    // در صورت بروز خطا
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
       message: error.message
@@ -45,9 +41,9 @@ function doGet(e) {
   }
 }
 
-// Format sheets (Font, Alignment, Bold Headers)
+// فرمت‌دهی به شیت‌ها (فونت، تراز، ویرگول کردن هدرها)
 function formatSheets(logSheet, geoSheet) {
-  var headersLogs = ["Date", "Time", "IP", "Device", "Browser", "Operating System"];
+  var headersLogs = ["Date", "Time", "IP", "User-Agent"];
   var headersGeo = ["IP", "Country", "Region", "City", "ISP", "Latitude", "Longitude", "Google Maps Link"];
 
   if (logSheet.getLastRow() === 0) {
@@ -78,53 +74,4 @@ function formatSheets(logSheet, geoSheet) {
   geoDataRange.setHorizontalAlignment("center");
 
   Logger.log("✅ Sheet formatting applied.");
-}
-
-// Detect device and browser
-function detectDevice(userAgent) {
-  var device = "PC/Laptop";
-  if (/Mobi|Android/i.test(userAgent)) {
-    device = "Mobile";
-  }
-
-  var browser = "Unknown";
-  if (userAgent.indexOf("Chrome") > -1) browser = "Chrome";
-  else if (userAgent.indexOf("Firefox") > -1) browser = "Firefox";
-  else if (userAgent.indexOf("Safari") > -1) browser = "Safari";
-  else if (userAgent.indexOf("Edge") > -1) browser = "Edge";
-
-  var os = "Unknown";
-  if (userAgent.indexOf("Windows") > -1) os = "Windows";
-  else if (userAgent.indexOf("Mac") > -1) os = "MacOS";
-  else if (userAgent.indexOf("Linux") > -1) os = "Linux";
-  else if (userAgent.indexOf("Android") > -1) os = "Android";
-  else if (userAgent.indexOf("iOS") > -1) os = "iOS";
-
-  return { device, browser, os };
-}
-
-// Retrieve GeoData from IP
-function getIPLocation(ip) {
-  try {
-    var response = UrlFetchApp.fetch("http://ip-api.com/json/" + ip + "?fields=status,country,regionName,city,isp,lat,lon");
-    var json = JSON.parse(response.getContentText());
-
-    if (json.status === "fail") {
-      Logger.log("❌ Failed to retrieve location data for: " + ip);
-      return { country: "Error", region: "Error", city: "Error", isp: "Error", lat: "0", lon: "0" };
-    }
-
-    return {
-      country: json.country || "Unknown",
-      region: json.regionName || "Unknown",
-      city: json.city || "Unknown",
-      isp: json.isp || "Unknown",
-      lat: json.lat || "0",
-      lon: json.lon || "0"
-    };
-
-  } catch (error) {
-    Logger.log("⚠️ API Error: " + error.toString());
-    return { country: "Error", region: "Error", city: "Error", isp: "Error", lat: "0", lon: "0" };
-  }
 }
