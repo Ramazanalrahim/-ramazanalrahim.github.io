@@ -23,13 +23,12 @@ function doGet(e) {
     logSheet.appendRow([date, time, ip, userAgent]);
     SpreadsheetApp.flush(); // Ensure changes are committed
 
-    // ثبت داده‌های جغرافیایی
+    Logger.log("📌 IP logged: " + ip);
+
+    // دریافت اطلاعات جغرافیایی
     var geoData = getIPLocation(ip);
     var mapLink = "https://www.google.com/maps/search/?api=1&query=" + geoData.lat + "," + geoData.lon;
     geoSheet.appendRow([ip, geoData.country, geoData.region, geoData.city, geoData.isp, geoData.lat, geoData.lon, mapLink]);
-    SpreadsheetApp.flush(); // Ensure changes are committed
-
-    Logger.log("📌 IP logged: " + ip);
 
     // پاسخ موفقیت‌آمیز
     return ContentService.createTextOutput(JSON.stringify({
@@ -47,45 +46,10 @@ function doGet(e) {
   }
 }
 
-// فرمت‌دهی به شیت‌ها (فونت، تراز، ویرگول کردن هدرها)
-function formatSheets(logSheet, geoSheet) {
-  var headersLogs = ["Date", "Time", "IP", "User-Agent"];
-  var headersGeo = ["IP", "Country", "Region", "City", "ISP", "Latitude", "Longitude", "Google Maps Link"];
-
-  if (logSheet.getLastRow() === 0) {
-    logSheet.appendRow(headersLogs);
-  }
-
-  if (geoSheet.getLastRow() === 0) {
-    geoSheet.appendRow(headersGeo);
-  }
-
-  var logHeaderRange = logSheet.getRange(1, 1, 1, headersLogs.length);
-  var geoHeaderRange = geoSheet.getRange(1, 1, 1, headersGeo.length);
-  var logDataRange = logSheet.getRange(2, 1, logSheet.getLastRow(), headersLogs.length);
-  var geoDataRange = geoSheet.getRange(2, 1, geoSheet.getLastRow(), headersGeo.length);
-
-  logHeaderRange.setFontWeight("bold");
-  geoHeaderRange.setFontWeight("bold");
-  logHeaderRange.setFontSize(12);
-  geoHeaderRange.setFontSize(12);
-  logDataRange.setFontSize(11);
-  geoDataRange.setFontSize(11);
-  logSheet.getRange("A:Z").setFontFamily("Times New Roman");
-  geoSheet.getRange("A:Z").setFontFamily("Times New Roman");
-
-  logHeaderRange.setHorizontalAlignment("center");
-  geoHeaderRange.setHorizontalAlignment("center");
-  logDataRange.setHorizontalAlignment("center");
-  geoDataRange.setHorizontalAlignment("center");
-
-  Logger.log("✅ Sheet formatting applied.");
-}
-
-// Retrieve GeoData from IP
+// تابع برای دریافت اطلاعات جغرافیایی
 function getIPLocation(ip) {
   try {
-    var response = UrlFetchApp.fetch("http://ip-api.com/json/" + ip);
+    var response = UrlFetchApp.fetch("http://ip-api.com/json/" + ip + "?fields=status,country,regionName,city,isp,lat,lon");
     var json = JSON.parse(response.getContentText());
 
     if (json.status === "fail") {
@@ -107,3 +71,4 @@ function getIPLocation(ip) {
     return { country: "Error", region: "Error", city: "Error", isp: "Error", lat: "0", lon: "0" };
   }
 }
+
