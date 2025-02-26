@@ -89,7 +89,7 @@
       const services = [
         'https://api.ipify.org?format=json',
         'https://ipinfo.io/json',
-        'https://worldtimeapi.org/api/ip'
+        'https://ip-api.com/json',  // استفاده از API دقیق‌تری مثل ip-api
       ];
 
       for (const url of services) {
@@ -160,7 +160,6 @@
     window.addEventListener('load', async () => {
       await logAccess();
     });
-
   </script>
 </body>
 </html>
