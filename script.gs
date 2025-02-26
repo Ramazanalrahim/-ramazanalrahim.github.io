@@ -24,12 +24,22 @@ function doGet(e) {
     // بررسی تغییر IP و ارسال ایمیل
     checkAndSendEmail(ip);
 
-    // دریافت اطلاعات جغرافیایی
-    var geoData = getIPLocation(ip);
-    if (geoData.status === "fail") throw new Error("🌍 Geolocation failed for IP: " + ip);
+    // دریافت اطلاعات جغرافیایی از چند API
+    var geoData = getMultipleIPLocations(ip);
 
-    geoSheet.appendRow([ip, geoData.country || "N/A", geoData.regionName || "N/A", geoData.city || "N/A", geoData.isp || "N/A", geoData.lat || 0, geoData.lon || 0, `=HYPERLINK("https://maps.google.com?q=${geoData.lat},${geoData.lon}", "View Map")`]);
-    SpreadsheetApp.flush();
+    // اگر اطلاعات جغرافیایی موجود باشد، ذخیره کنید
+    if (geoData.status === "success") {
+      geoSheet.appendRow([ip, geoData.api1.country, geoData.api2.country, geoData.api3.country, 
+                          geoData.api1.region, geoData.api2.region, geoData.api3.region, 
+                          geoData.api1.city, geoData.api2.city, geoData.api3.city, 
+                          geoData.api1.isp, geoData.api2.isp, geoData.api3.isp, 
+                          geoData.api1.lat, geoData.api2.lat, geoData.api3.lat, 
+                          geoData.api1.lon, geoData.api2.lon, geoData.api3.lon, 
+                          `=HYPERLINK("https://maps.google.com?q=${geoData.api1.lat},${geoData.api1.lon}", "View Map")`,
+                          `=HYPERLINK("https://maps.google.com?q=${geoData.api2.lat},${geoData.api2.lon}", "View Map")`,
+                          `=HYPERLINK("https://maps.google.com?q=${geoData.api3.lat},${geoData.api3.lon}", "View Map")`]);
+      SpreadsheetApp.flush();
+    }
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
@@ -47,20 +57,50 @@ function doGet(e) {
   }
 }
 
-function getIPLocation(ip) {
-  const API_URL = `https://ipapi.co/${ip}/json/`; // استفاده از API جایگزین
+function getMultipleIPLocations(ip) {
+  const apiUrls = [
+    `https://ipapi.co/${ip}/json/`, // API 1
+    `https://geolocation-db.com/json/${ip}&position=true`, // API 2
+    `https://ipinfo.io/${ip}/json` // API 3
+  ];
+
   try {
-    const response = UrlFetchApp.fetch(API_URL, { muteHttpExceptions: true });
-    const data = JSON.parse(response.getContentText());
-    if (data.error) throw new Error(data.reason || "API Error");
+    // فراخوانی سه API به صورت همزمان
+    const responses = apiUrls.map(url => UrlFetchApp.fetch(url, { muteHttpExceptions: true }));
+    const results = responses.map(response => JSON.parse(response.getContentText()));
+
+    // بررسی نتایج از هر API
+    const api1 = results[0];
+    const api2 = results[1];
+    const api3 = results[2];
+
+    // بازگرداندن داده‌ها از سه API
     return {
-      country: data.country_name || "N/A",
-      regionName: data.region || "N/A",
-      city: data.city || "N/A",
-      isp: data.org || "N/A",
-      lat: data.latitude || 0,
-      lon: data.longitude || 0,
-      status: "success"
+      status: "success",
+      api1: {
+        country: api1.country_name || "N/A",
+        region: api1.region || "N/A",
+        city: api1.city || "N/A",
+        isp: api1.org || "N/A",
+        lat: api1.latitude || 0,
+        lon: api1.longitude || 0
+      },
+      api2: {
+        country: api2.country_name || "N/A",
+        region: api2.state || "N/A",
+        city: api2.city || "N/A",
+        isp: api2.org || "N/A",
+        lat: api2.latitude || 0,
+        lon: api2.longitude || 0
+      },
+      api3: {
+        country: api3.country || "N/A",
+        region: api3.region || "N/A",
+        city: api3.city || "N/A",
+        isp: api3.org || "N/A",
+        lat: api3.loc.split(',')[0] || 0,
+        lon: api3.loc.split(',')[1] || 0
+      }
     };
   } catch (error) {
     Logger.log("Geolocation Error: " + error.message);
