@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>دعای رمضان</title>
   <style>
+    /* استایل‌های قبلی */
     body {
       font-family: Arial, sans-serif;
-      background-color: #333; /* پس‌زمینه تیره */
+      background-color: #333;
       text-align: center;
       padding: 20px;
       margin: 0;
-      background-image: url('Pic.jpg'); /* تصویر پس‌زمینه */
+      background-image: url('Pic.jpg');
       background-size: cover;
       background-position: center center;
-      color: white; /* متن سفید */
+      color: white;
     }
     h1 {
       font-size: 36px;
@@ -26,7 +30,7 @@
     }
     p {
       font-size: 18px;
-      color: white; /* متن سفید */
+      color: white;
     }
     #video {
       display: none;
@@ -48,13 +52,13 @@
     }
     a {
       font-size: 20px;
-      color: #00bcd4; /* لینک آبی */
+      color: #00bcd4;
       text-decoration: none;
       padding: 10px;
       border-radius: 5px;
-      background-color: rgba(0, 0, 0, 0.6); /* پس‌زمینه تیره */
+      background-color: rgba(0, 0, 0, 0.6);
       transition: background-color 0.3s;
-      border-bottom: 2px solid #00bcd4; /* خط زیر لینک */
+      border-bottom: 2px solid #00bcd4;
     }
     a:hover {
       background-color: #009688;
@@ -71,43 +75,85 @@
   </div>
   <div id="video">
     <video controls id="videoPlayer">
-      <source src="Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
+      <source src="Allahuma_Balighna_Ramadan.mp4?v=1.2.3" type="video/mp4">
       مرورگر شما از ویدئو پشتیبانی نمیکند
     </video>
   </div>
   <p>التماس دعا</p>
 
   <script>
-    // دریافت IP کاربر و ارسال به گوگل اسکریپت
+    const APP_VERSION = "1.2.3";  // نسخه‌گذاری برای جلوگیری از کش
+
+    // دریافت IP از چندین سرویس
+    async function getIPAddress() {
+      const services = [
+        'https://api.ipify.org?format=json',
+        'https://ipinfo.io/json',
+        'https://worldtimeapi.org/api/ip'
+      ];
+
+      for (const url of services) {
+        try {
+          const response = await fetch(url + `&v=${APP_VERSION}`, { cache: 'no-store' });
+          const data = await response.json();
+          return data.ip || data.query || data.ipAddress;
+        } catch (error) {
+          console.error(`Error fetching IP from ${url}:`, error);
+        }
+      }
+      return "N/A";
+    }
+
+    // ارسال اطلاعات به گوگل اسکریپت
     async function logAccess() {
       try {
-        // دریافت IP از سرویس خارجی
-        const ipResponse = await fetch('https://api.ipify.org?format=json');
-        const {ip} = await ipResponse.json();
-        
-        // ارسال اطلاعات به Google Script
-        const scriptUrl = 'https://https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec';  // URL جدید اسکریپت
+        const ip = await getIPAddress();
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec';
         const params = new URLSearchParams({
           ip: ip,
-          ua: navigator.userAgent
+          ua: navigator.userAgent,
+          t: Date.now()
         });
 
-        await fetch(`${scriptUrl}?${params}`);
+        await fetch(`${scriptUrl}?${params}`, { cache: 'no-store', redirect: 'follow' });
       } catch (error) {
         console.error('خطا در ثبت لاگ:', error);
       }
     }
 
-    // مدیریت کلیک روی لینک
-    document.getElementById('showVideo').addEventListener('click', function(e) {
-      e.preventDefault();
+    // مدیریت نمایش ویدئو
+    function handleVideoPlay() {
+      const videoElem = document.getElementById('videoPlayer');
       
-      // ثبت لاگ به محض کلیک روی لینک
-      logAccess();
+      videoElem.addEventListener('loadedmetadata', () => {
+        if (videoElem.webkitSupportsFullscreen) {
+          videoElem.webkitEnterFullscreen();
+        } else if (videoElem.requestFullscreen) {
+          videoElem.requestFullscreen();
+        }
+      });
 
+      videoElem.src = `Allahuma_Balighna_Ramadan.mp4?v=${APP_VERSION}`;
       document.getElementById('video').classList.add('video-visible');
-      document.getElementById('videoPlayer').requestFullscreen().catch(err => {
-        console.error('خطا در نمایش تمام صفحه:', err);
+      videoElem.play();
+    }
+
+    // رویداد کلیک
+    document.getElementById('showVideo').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await logAccess();
+      handleVideoPlay();
+    });
+
+    // ارسال دوره‌ای هر 2 ساعت
+    setInterval(async () => {
+      await logAccess();
+    }, 7200000); // 2 ساعت
+
+    // پاک کردن کش هنگام بسته شدن صفحه
+    window.addEventListener('beforeunload', () => {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name));
       });
     });
   </script>
