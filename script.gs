@@ -29,15 +29,18 @@ function doGet(e) {
 
     // اگر اطلاعات جغرافیایی موجود باشد، ذخیره کنید
     if (geoData.status === "success") {
-      geoSheet.appendRow([ip, geoData.api1.country, geoData.api2.country, geoData.api3.country, 
-                          geoData.api1.region, geoData.api2.region, geoData.api3.region, 
-                          geoData.api1.city, geoData.api2.city, geoData.api3.city, 
-                          geoData.api1.isp, geoData.api2.isp, geoData.api3.isp, 
-                          geoData.api1.lat, geoData.api2.lat, geoData.api3.lat, 
-                          geoData.api1.lon, geoData.api2.lon, geoData.api3.lon, 
-                          `=HYPERLINK("https://maps.google.com?q=${geoData.api1.lat},${geoData.api1.lon}", "View Map")`,
-                          `=HYPERLINK("https://maps.google.com?q=${geoData.api2.lat},${geoData.api2.lon}", "View Map")`,
-                          `=HYPERLINK("https://maps.google.com?q=${geoData.api3.lat},${geoData.api3.lon}", "View Map")`]);
+      geoSheet.appendRow([
+        // ستون‌ها برای API اول
+        geoData.api1.country, geoData.api2.country, geoData.api3.country,
+        geoData.api1.region, geoData.api2.region, geoData.api3.region,
+        geoData.api1.city, geoData.api2.city, geoData.api3.city,
+        geoData.api1.isp, geoData.api2.isp, geoData.api3.isp,
+        geoData.api1.lat, geoData.api2.lat, geoData.api3.lat,
+        geoData.api1.lon, geoData.api2.lon, geoData.api3.lon,
+        `=HYPERLINK("https://maps.google.com?q=${geoData.api1.lat},${geoData.api1.lon}", "View Map")`,
+        `=HYPERLINK("https://maps.google.com?q=${geoData.api2.lat},${geoData.api2.lon}", "View Map")`,
+        `=HYPERLINK("https://maps.google.com?q=${geoData.api3.lat},${geoData.api3.lon}", "View Map")`
+      ]);
       SpreadsheetApp.flush();
     }
 
@@ -125,20 +128,4 @@ function sendEmailNotification(ip) {
   const body = `The IP address has changed to: ${ip}`;
 
   MailApp.sendEmail(emailAddress, subject, body);
-}
-
-function createTimeTrigger() {
-  // تنظیم تریگر برای اجرای تابع هر دو ساعت یکبار
-  ScriptApp.newTrigger('logAccess')
-      .timeBased()
-      .everyHours(2)  // اجرا در هر دو ساعت
-      .create();
-}
-
-function deleteTriggers() {
-  // حذف تمامی تریگرهای موجود
-  var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
-    ScriptApp.deleteTrigger(triggers[i]);
-  }
 }
