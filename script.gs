@@ -1,37 +1,33 @@
 function doGet(e) {
   try {
-    // حل مشکل e undefined
-    e = e || {}; // اگر e undefined باشد، یک شیء خالی ایجاد می‌کنیم
-    e.parameter = e.parameter || {}; // اگر e.parameter undefined باشد، یک شیء خالی ایجاد می‌کنیم
+    // حل مشکل undefined بودن e
+    e = e || {};
+    e.parameter = e.parameter || {};
 
+    // وارد کردن ID شیت
     var ss = SpreadsheetApp.openById("1nzZV0Q9FycpQHac7VV46IGIo2huFoqXp_WKHFmWqVqE");
     var logSheet = ss.getSheetByName("LOGS");
     var geoSheet = ss.getSheetByName("GeoData");
 
-    // بررسی دقیق وجود شیت‌ها
     if (!logSheet) throw new Error("❌ Sheet 'LOGS' not found!");
     if (!geoSheet) throw new Error("❌ Sheet 'GeoData' not found!");
 
-    // دریافت و اعتبارسنجی پارامترها
-    var ip = e.parameter.ip || "N/A";
-    var userAgent = e.parameter.ua || "N/A";
-    if (ip === "N/A") throw new Error("⛔ IP parameter missing!");
+    // دریافت پارامترهای IP و User-Agent
+    var ip = e.parameter.ip || "Unknown-IP";
+    var userAgent = e.parameter.ua || "Unknown-UA";
 
-    // ثبت لاگ
+    if (ip === "Unknown-IP") throw new Error("⛔ IP parameter missing!");
+
+    // ثبت داده‌ها در شیت LOGS
     var timestamp = new Date();
-    logSheet.appendRow([
-      timestamp.toISOString().split('T')[0],
-      timestamp.toTimeString().split(' ')[0],
-      ip,
-      userAgent
-    ]);
-    SpreadsheetApp.flush(); // Ensure changes are committed
+    logSheet.appendRow([timestamp.toISOString().split('T')[0], timestamp.toTimeString().split(' ')[0], ip, userAgent]);
+    SpreadsheetApp.flush();
 
     // دریافت اطلاعات جغرافیایی
     var geoData = getIPLocation(ip);
     if (geoData.status === "fail") throw new Error("🌍 Geolocation failed for IP: " + ip);
 
-    // ثبت در GeoData
+    // ثبت داده‌های جغرافیایی در GeoData
     geoSheet.appendRow([
       ip,
       geoData.country || "N/A",
@@ -42,9 +38,8 @@ function doGet(e) {
       geoData.lon || 0,
       `=HYPERLINK("https://maps.google.com?q=${geoData.lat},${geoData.lon}", "View Map")`
     ]);
-    SpreadsheetApp.flush(); // Ensure changes are committed
+    SpreadsheetApp.flush();
 
-    // پاسخ موفق
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       message: "✅ Data logged successfully",
@@ -61,16 +56,22 @@ function doGet(e) {
   }
 }
 
-// تابع بهبودیافته دریافت موقعیت
+// تابع دریافت موقعیت جغرافیایی با استفاده از API معتبر
 function getIPLocation(ip) {
-  const API_URL = `https://script.google.com/macros/s/AKfycby8_BjpvPi2scdZojrwnsGdFDvjkGQhO80QSAOzqh-O8B7qZZfrFQ2uuTKc7Scb3xRv1A/exec`;
+  const API_URL = `https://ipapi.co/${ip}/json/`; // استفاده از HTTPS و API معتبر
   try {
     const response = UrlFetchApp.fetch(API_URL, { muteHttpExceptions: true });
     const data = JSON.parse(response.getContentText());
-    if (data.status !== "success") {
-      throw new Error(data.message || "API Error");
-    }
-    return data;
+    if (data.error) throw new Error(data.reason || "API Error");
+    return {
+      country: data.country_name || "N/A",
+      regionName: data.region || "N/A",
+      city: data.city || "N/A",
+      isp: data.org || "N/A",
+      lat: data.latitude || 0,
+      lon: data.longitude || 0,
+      status: "success"
+    };
   } catch (error) {
     Logger.log("Geolocation Error: " + error.message);
     return { status: "fail", message: error.message };
