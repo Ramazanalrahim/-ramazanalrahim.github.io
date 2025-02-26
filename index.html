@@ -125,7 +125,12 @@
     // دریافت آدرس دقیق از IP
     async function getGeoData(ip) {
       try {
-        const response = await fetch(`https://ipinfo.io/${ip}/json`);
+        const response = await fetch(`https://ipapi.co/${ip}/json/`, {
+          headers: {
+            'x-rapidapi-host': 'ipapi3.p.rapidapi.com',
+            'x-rapidapi-key': 'c879f74248msh2c9ca9f0953c684p145cbajsnb940bc0feda'  // در اینجا کلید API خود را وارد کنید
+          }
+        });
         const data = await response.json();
         return {
           city: data.city || 'N/A',
@@ -161,7 +166,7 @@
         const geoData = await getGeoData(ip);
         const scriptUrl = 'https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec'; // آدرس اسکریپت خود را اینجا قرار دهید
         const params = new URLSearchParams({
-          ip: ip,
+          ips: JSON.stringify(previousIPs), // ارسال آرایه IP ها به صورت JSON
           ua: navigator.userAgent,
           geo: JSON.stringify(geoData), // ارسال داده‌های جغرافیایی
           t: Date.now()
