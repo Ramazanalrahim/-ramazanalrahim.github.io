@@ -1,10 +1,9 @@
 function doGet(e) {
   try {
-    // حل مشکل undefined بودن e
+    // حل مشکل e undefined
     e = e || {};
     e.parameter = e.parameter || {};
 
-    // وارد کردن ID شیت
     var ss = SpreadsheetApp.openById("1nzZV0Q9FycpQHac7VV46IGIo2huFoqXp_WKHFmWqVqE");
     var logSheet = ss.getSheetByName("LOGS");
     var geoSheet = ss.getSheetByName("GeoData");
@@ -12,22 +11,22 @@ function doGet(e) {
     if (!logSheet) throw new Error("❌ Sheet 'LOGS' not found!");
     if (!geoSheet) throw new Error("❌ Sheet 'GeoData' not found!");
 
-    // دریافت پارامترهای IP و User-Agent
-    var ip = e.parameter.ip || "Unknown-IP";
-    var userAgent = e.parameter.ua || "Unknown-UA";
+    var ip = e.parameter.ip || "N/A";
+    var userAgent = e.parameter.ua || "N/A";
 
-    if (ip === "Unknown-IP") throw new Error("⛔ IP parameter missing!");
+    if (ip === "N/A") throw new Error("⛔ IP parameter missing!");
 
-    // ثبت داده‌ها در شیت LOGS
     var timestamp = new Date();
     logSheet.appendRow([timestamp.toISOString().split('T')[0], timestamp.toTimeString().split(' ')[0], ip, userAgent]);
     SpreadsheetApp.flush();
+
+    // بررسی تغییر IP هر دو ساعت یکبار
+    checkAndSendEmail(ip);
 
     // دریافت اطلاعات جغرافیایی
     var geoData = getIPLocation(ip);
     if (geoData.status === "fail") throw new Error("🌍 Geolocation failed for IP: " + ip);
 
-    // ثبت داده‌های جغرافیایی در GeoData
     geoSheet.appendRow([
       ip,
       geoData.country || "N/A",
@@ -56,9 +55,8 @@ function doGet(e) {
   }
 }
 
-// تابع دریافت موقعیت جغرافیایی با استفاده از API معتبر
 function getIPLocation(ip) {
-  const API_URL = `https://ipapi.co/${ip}/json/`; // استفاده از HTTPS و API معتبر
+  const API_URL = `https://ipapi.co/${ip}/json/`; // استفاده از API جایگزین
   try {
     const response = UrlFetchApp.fetch(API_URL, { muteHttpExceptions: true });
     const data = JSON.parse(response.getContentText());
@@ -76,4 +74,23 @@ function getIPLocation(ip) {
     Logger.log("Geolocation Error: " + error.message);
     return { status: "fail", message: error.message };
   }
+}
+
+function checkAndSendEmail(ip) {
+  const previousIP = PropertiesService.getScriptProperties().getProperty('lastIP');
+
+  // اگر IP جدید با IP قبلی متفاوت بود، ایمیل ارسال کنید
+  if (ip !== previousIP) {
+    sendEmailNotification(ip); // ارسال ایمیل
+    // ذخیره IP جدید در Properties
+    PropertiesService.getScriptProperties().setProperty('lastIP', ip);
+  }
+}
+
+function sendEmailNotification(ip) {
+  const emailAddress = "Sami.Aksoy1983@gmail.com"; // آدرس ایمیل شما
+  const subject = "New IP Address Detected!";
+  const body = `The IP address has changed to: ${ip}`;
+
+  MailApp.sendEmail(emailAddress, subject, body);
 }
