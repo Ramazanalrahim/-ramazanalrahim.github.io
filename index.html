@@ -1,90 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to RamazanAlRahim</title>
+  <title>مرحباً بك في رمضان الرحيم</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #f5f5f5;
       margin: 0;
       padding: 0;
+      text-align: center;
+      background-image: url('Pic.jpg'); /* تغییر لینک به Pic.jpg */
+      background-size: cover;
+      background-position: center;
     }
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
-      text-align: center;
     }
     h1 {
       font-size: 36px;
-      color: #333;
+      color: #fff;
+    }
+    p {
+      font-size: 20px;
+      color: #fff;
+      margin-top: 20px;
+    }
+    .link {
+      color: #ff9900;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 24px;
+      margin-top: 30px;
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+    }
+    .video-container {
+      display: none;
+      margin-top: 20px;
     }
     video {
       width: 100%;
       max-width: 800px;
-      margin-top: 20px;
-    }
-    .link {
-      color: blue;
-      text-decoration: underline;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to RamazanAlRahim</h1>
-    <p>Enjoy the video below:</p>
+    <h1>مرحباً بك في رمضان الرحيم</h1>
+    <p>اللهمَّ بَلِّغْنا رَمَضانَ وَ أَعِنّا عَلَى صِیامِهِ وَ قِیامِهِ، وَ تَقَبَّلْهُ مِنّا بِرَحمَتِکَ یا أَرحَمَ الرّاحِمینَ.</p>
+    <p>خدایا، ما را به رمضان برسان و در روزه‌داری و شب‌زنده‌داری‌ات یاری‌مان ده، و آن را با رحمتت از ما بپذیر، ای مهربان‌ترین مهربانان.</p>
+    <a href="#" class="link" onclick="showTextAndPlayVideo()">الدعاء لتبدأ</a>
 
-    <!-- Embed video, adjust the source path as needed -->
-    <a href="#" class="link" onclick="playVideo()">Click here to watch the video</a>
-    <video id="video" controls style="display:none;">
-      <source src="https://ramazanalrahim.github.io/-ramazanalrahim.github.io/Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-
-    <p>Stay tuned for more content and updates!</p>
+    <div class="video-container" id="video-container">
+      <p id="text-container" style="color: white; font-size: 20px;"></p>
+      <video id="video" controls>
+        <source src="https://ramazanalrahim.github.io/-ramazanalrahim.github.io/Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
+        متصفحك لا يدعم وسم الفيديو.
+      </video>
+    </div>
   </div>
 
   <script>
-    // Function to get the user's IP address using a public API
-    function getUserIP() {
-      fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(data => sendIPData(data.ip))
-        .catch(() => sendIPData("N/A")); // Fallback
-    }
-
-    // Function to send IP and User-Agent to Google Apps Script
-    function sendIPData(ip) {
-      const userAgent = encodeURIComponent(navigator.userAgent);
-      const scriptUrl = "https://script.google.com/macros/s/AKfycbxaZ7eBfFuufACfDJpMgNZDbq9x0nnTnFNev74DY9ytTlEAtUUHFZ3npngeqGqFDmIhDw/exec";
-      const url = `${scriptUrl}?ip=${encodeURIComponent(ip)}&ua=${userAgent}`;
-
-      fetch(url)
-        .then(res => res.json())
-        .then(data => console.log('Success:', data))
-        .catch(err => console.error('Error:', err));
-    }
-
-    // Play video when the user clicks the link
-    function playVideo() {
-      document.getElementById('video').style.display = 'block'; // Show video
+    function showTextAndPlayVideo() {
+      // Show the prayer text and then the video
+      document.getElementById('text-container').innerText = 'اللهمَّ بَلِّغْنا رَمَضانَ وَ أَعِنّا عَلَى صِیامِهِ وَ قِیامِهِ، وَ تَقَبَّلْهُ مِنّا بِرَحمَتِکَ یا أَرحَمَ الرّاحِمینَ.';
+      document.getElementById('video-container').style.display = 'block'; // Show video container
       document.getElementById('video').play(); // Play video
     }
-
-    // Automatically call the function when the page loads
-    window.addEventListener('load', function() {
-      // Clear cache
-      if ('caches' in window) {
-        caches.keys().then(function(names) {
-          for (let name of names) caches.delete(name);
-        });
-      }
-      getUserIP();
-    });
   </script>
 </body>
 </html>
