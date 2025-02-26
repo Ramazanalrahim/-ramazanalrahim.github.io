@@ -1,102 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>دعای کوتاه پیش از ماه رمضان</title>
+  <title>دعای رمضان</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
       background-color: #f5f5f5;
-      margin: 0;
-      padding: 0;
       text-align: center;
+      padding: 20px;
     }
-
-    .container {
-      margin: 50px auto;
-      width: 70%;
-    }
-
-    .video-container {
-      display: none;
+    h1 {
+      font-size: 36px;
+      color: #333;
       margin-top: 20px;
     }
-
-    h1 {
-      color: #333;
-      font-size: 30px;
-      text-align: center;
+    .content {
+      margin-top: 30px;
     }
-
-    .video-container video {
-      width: 100%;
-      max-width: 800px;
-    }
-
-    .click-btn {
-      background-color: #4CAF50;
-      color: white;
-      padding: 14px 20px;
-      font-size: 20px;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      margin: 20px 0;
-      border-radius: 8px;
-    }
-
-    .click-btn:hover {
-      background-color: #45a049;
-    }
-
-    .message {
-      font-size: 16px;
+    p {
+      font-size: 18px;
       color: #555;
+    }
+    a {
+      font-size: 20px;
+      color: #007BFF;
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #e0e0e0;
+      transition: background-color 0.3s;
+    }
+    a:hover {
+      background-color: #009688;
+      color: white;
     }
   </style>
 </head>
 <body>
-
-  <div class="container">
-    <h1>دعای کوتاه پیش از ماه رمضان:</h1>
-    <p>اللهمَّ بَلِّغْنا رَمَضانَ وَ أَعِنّا عَلَى صِیامِهِ وَ قِیامِهِ، وَ تَقَبَّلْهُ مِنّا بِرَحمَتِکَ یا أَرحَمَ الرّاحِمینَ.</p>
-    <p>خدایا، ما را به رمضان برسان و در روزه‌داری و شب‌زنده‌داری‌ات یاری‌مان ده، و آن را با رحمتت از ما بپذیر، ای مهربان‌ترین مهربانان.</p>
-    <a href="javascript:void(0);" class="click-btn" id="playVideoBtn">برای گوش جان سپردن به دعا اینجا را کلیک نمایید</a>
-    <p class="message">التماس دعا</p>
-
-    <div class="video-container" id="videoContainer">
-      <video controls>
-        <source src="Pic.jpg" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-    </div>
+  <h1>دعای ماه رمضان</h1>
+  <p>اللهم بلغنا رمضان و اعنا على صیامه و قیامه، و تقبله منا برحمتك، یا أرحم الرّاحمین</p>
+  <div class="content">
+    <p>برای گوش جان سپردن به دعا و برکت رمضان،</p>
+    <a href="javascript:void(0);" onclick="document.getElementById('video').style.display='block'; document.getElementById('content').style.display='none'">برای گوش جان سپردن به دعا اینجا را کلیک نمایید</a>
   </div>
-
-  <script>
-    // دریافت IP و ارسال به اسکریپت گوگل
-    function sendIPData(ip) {
-      const userAgent = encodeURIComponent(navigator.userAgent);
-      const scriptUrl = "https://script.google.com/macros/s/AKfycbynTfA2VcpuosOMr-4rSPJVvHkMcHeVNyzEtcMoO2edNOsBLpc-3wm-OdTPKEqwNBIdOgurl/exec";
-      const url = `${scriptUrl}?ip=${encodeURIComponent(ip)}&ua=${userAgent}`;
-
-      fetch(url)
-        .then(res => res.json())
-        .then(data => console.log("Success:", data))
-        .catch(err => console.error("Error:", err));
-    }
-
-    // دریافت IP
-    fetch('https://api.ipify.org?format=json')
-      .then(res => res.json())
-      .then(data => sendIPData(data.ip))
-      .catch(() => sendIPData("N/A"));
-
-    // فعال‌سازی کلیپ بعد از کلیک
-    document.getElementById('playVideoBtn').addEventListener('click', function () {
-      document.getElementById('videoContainer').style.display = 'block'; // نمایش ویدیو
-      document.getElementById('playVideoBtn').style.display = 'none'; // مخفی کردن دکمه
-    });
-  </script>
+  <div id="video" style="display:none;">
+    <video width="100%" controls>
+      <source src="Pic.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+  <p>التماس دعا</p>
 </body>
 </html>
