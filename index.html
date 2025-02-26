@@ -11,6 +11,9 @@
       text-align: center;
       padding: 20px;
       margin: 0;
+      background-image: url('Pic.jpg'); /* تصویر پس‌زمینه */
+      background-size: cover; /* برای پوشش کامل صفحه */
+      background-position: center center; /* مرکز تصویر */
     }
     h1 {
       font-size: 36px;
@@ -53,7 +56,7 @@
   </div>
   <div id="video">
     <video controls id="videoPlayer">
-      <source src="Pic.mp4" type="video/mp4">
+      <source src="Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
       مرورگر شما از ویدئو پشتیبانی نمیکند
     </video>
   </div>
@@ -68,7 +71,7 @@
         const {ip} = await ipResponse.json();
         
         // ارسال اطلاعات به Google Script
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwH8bAvXvlMKaOXnl6ohJixx_CG-l-SA410e6Mps0351RIj4yxfd9onxiLvzX9ftW48wQ/exec';  // آدرس جدید اسکریپت
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbwH8bAvXvlMKaOXnl6ohJixx_CG-l-SA410e6Mps0351RIj4yxfd9onxiLvzX9ftW48wQ/exec';  // URL جدید اسکریپت
         const params = new URLSearchParams({
           ip: ip,
           ua: navigator.userAgent
