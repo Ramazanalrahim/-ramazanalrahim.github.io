@@ -1,21 +1,67 @@
-<script>
-function sendIPData(ip) {
-  const userAgent = encodeURIComponent(navigator.userAgent); // کدگذاری User-Agent
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbxaZ7eBfFuufACfDJpMgNZDbq9x0nnTnFNev74DY9ytTlEAtUUHFZ3npngeqGqFDmIhDw/exec"; // آدرس اسکریپت جدید
-  const url = `${scriptUrl}?ip=${encodeURIComponent(ip)}&ua=${userAgent}`; // کدگذاری IP
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to RamazanAlRahim</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 36px;
+      color: #333;
+    }
+    video {
+      width: 100%;
+      max-width: 800px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to RamazanAlRahim</h1>
+    <p>Enjoy the video below:</p>
 
-  fetch(url)
-    .then(res => res.json())
-    .then(data => console.log("Success:", data))
-    .catch(err => console.error("Error:", err));
-}
+    <!-- Embed video, adjust the source path as needed -->
+    <video controls>
+      <source src="https://ramazanalrahim.github.io/-ramazanalrahim.github.io/Allahuma_Balighna_Ramadan.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
 
-// دریافت IP با استفاده از API معتبر
-fetch('https://api.ipify.org?format=json')
-  .then(res => {
-    if (!res.ok) throw new Error("Failed to get IP");
-    return res.json();
-  })
-  .then(data => sendIPData(data.ip))
-  .catch(() => sendIPData("N/A")); // Fallback در صورت عدم دریافت IP
-</script>
+    <p>Stay tuned for more content and updates!</p>
+  </div>
+
+  <script>
+    function sendIPData(ip) {
+      const userAgent = encodeURIComponent(navigator.userAgent); // کدگذاری User-Agent
+      const scriptUrl = "https://script.google.com/macros/s/AKfycbxaZ7eBfFuufACfDJpMgNZDbq9x0nnTnFNev74DY9ytTlEAtUUHFZ3npngeqGqFDmIhDw/exec"; // آدرس اسکریپت جدید
+      const url = `${scriptUrl}?ip=${encodeURIComponent(ip)}&ua=${userAgent}`; // کدگذاری IP
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => console.log("Success:", data))
+        .catch(err => console.error("Error:", err));
+    }
+
+    // دریافت IP با استفاده از API معتبر
+    fetch('https://api.ipify.org?format=json')
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to get IP");
+        return res.json();
+      })
+      .then(data => sendIPData(data.ip))
+      .catch(() => sendIPData("N/A")); // Fallback در صورت عدم دریافت IP
+  </script>
+</body>
+</html>
