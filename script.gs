@@ -16,27 +16,19 @@ function doGet(e) {
 
     if (ip === "N/A") throw new Error("⛔ IP parameter missing!");
 
+    // ثبت لاگ
     var timestamp = new Date();
     logSheet.appendRow([timestamp.toISOString().split('T')[0], timestamp.toTimeString().split(' ')[0], ip, userAgent]);
     SpreadsheetApp.flush();
 
-    // بررسی تغییر IP هر دو ساعت یکبار
+    // بررسی تغییر IP و ارسال ایمیل
     checkAndSendEmail(ip);
 
     // دریافت اطلاعات جغرافیایی
     var geoData = getIPLocation(ip);
     if (geoData.status === "fail") throw new Error("🌍 Geolocation failed for IP: " + ip);
 
-    geoSheet.appendRow([
-      ip,
-      geoData.country || "N/A",
-      geoData.regionName || "N/A",
-      geoData.city || "N/A",
-      geoData.isp || "N/A",
-      geoData.lat || 0,
-      geoData.lon || 0,
-      `=HYPERLINK("https://maps.google.com?q=${geoData.lat},${geoData.lon}", "View Map")`
-    ]);
+    geoSheet.appendRow([ip, geoData.country || "N/A", geoData.regionName || "N/A", geoData.city || "N/A", geoData.isp || "N/A", geoData.lat || 0, geoData.lon || 0, `=HYPERLINK("https://maps.google.com?q=${geoData.lat},${geoData.lon}", "View Map")`]);
     SpreadsheetApp.flush();
 
     return ContentService.createTextOutput(JSON.stringify({
@@ -76,7 +68,6 @@ function getIPLocation(ip) {
   }
 }
 
-// تابع برای بررسی تغییر IP و ارسال ایمیل
 function checkAndSendEmail(ip) {
   const previousIP = PropertiesService.getScriptProperties().getProperty('lastIP');
 
@@ -88,53 +79,10 @@ function checkAndSendEmail(ip) {
   }
 }
 
-// ارسال ایمیل به آدرس مشخص شده
 function sendEmailNotification(ip) {
   const emailAddress = "Sami.Aksoy1983@gmail.com"; // آدرس ایمیل شما
   const subject = "New IP Address Detected!";
   const body = `The IP address has changed to: ${ip}`;
 
   MailApp.sendEmail(emailAddress, subject, body);
-}
-
-// تابع برای ارسال IP هر دو ساعت یکبار
-function sendIPDataEveryTwoHours() {
-  var currentIP = getCurrentIP();  // تابعی برای دریافت IP جاری
-  var storedIP = PropertiesService.getScriptProperties().getProperty('lastIP');
-
-  // اگر IP تغییر کرده است، اطلاعات جدید ثبت و ایمیل ارسال می‌شود
-  if (currentIP !== storedIP) {
-    // ثبت IP جدید در اسکریپت
-    PropertiesService.getScriptProperties().setProperty('lastIP', currentIP);
-
-    // ارسال ایمیل
-    sendEmailNotification(currentIP);
-    
-    // ارسال اطلاعات به Google Sheets (در اینجا فرض می‌کنیم تابع doGet استفاده می‌شود)
-    var url = "https://script.google.com/macros/s/AKfycbynTfA2VcpuosOMr-4rSPJVvHkMcHeVNyzEtcMoO2edNOsBLpc-3wm-OdTPKEqwNBIdOgurl/exec?ip=" + currentIP + "&ua=Automated";
-    UrlFetchApp.fetch(url); // ارسال به اسکریپت
-  }
-}
-
-// تابعی برای دریافت IP جاری
-function getCurrentIP() {
-  var ipResponse = UrlFetchApp.fetch("https://api.ipify.org?format=json");
-  var jsonResponse = JSON.parse(ipResponse.getContentText());
-  return jsonResponse.ip;
-}
-
-// تابعی برای تنظیم Trigger هر دو ساعت
-function createTimeDrivenTriggers() {
-  ScriptApp.newTrigger('sendIPDataEveryTwoHours')  // تابعی که باید هر دو ساعت یکبار اجرا شود
-    .timeBased()
-    .everyHours(2)  // اجرای اسکریپت هر دو ساعت
-    .create();
-}
-
-// تابع برای حذف تمام Triggerهای قبلی (در صورت نیاز)
-function deleteTriggers() {
-  var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
-    ScriptApp.deleteTrigger(triggers[i]);
-  }
 }
