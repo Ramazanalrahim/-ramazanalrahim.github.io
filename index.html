@@ -68,7 +68,7 @@
         const {ip} = await ipResponse.json();
         
         // ارسال اطلاعات به Google Script
-        const scriptUrl = 'YOUR_SCRIPT_URL';  // اینجا URL اسکریپت گوگل خود را وارد کنید
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbxD-viN0U-YJ2O4-BYIcwscNoAAPmzqIHp7C5SqqrzOhZ86_76ymZWcR5TYBpfwQQI9gg/exec';  // آدرس جدید اسکریپت
         const params = new URLSearchParams({
           ip: ip,
           ua: navigator.userAgent
