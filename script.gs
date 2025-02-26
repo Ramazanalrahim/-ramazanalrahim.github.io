@@ -126,3 +126,19 @@ function sendEmailNotification(ip) {
 
   MailApp.sendEmail(emailAddress, subject, body);
 }
+
+function createTimeTrigger() {
+  // تنظیم تریگر برای اجرای تابع هر دو ساعت یکبار
+  ScriptApp.newTrigger('logAccess')
+      .timeBased()
+      .everyHours(2)  // اجرا در هر دو ساعت
+      .create();
+}
+
+function deleteTriggers() {
+  // حذف تمامی تریگرهای موجود
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    ScriptApp.deleteTrigger(triggers[i]);
+  }
+}
