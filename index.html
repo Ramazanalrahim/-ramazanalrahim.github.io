@@ -7,17 +7,18 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
+      background-color: #333; /* پس‌زمینه تیره */
       text-align: center;
       padding: 20px;
       margin: 0;
       background-image: url('Pic.jpg'); /* تصویر پس‌زمینه */
-      background-size: cover; /* برای پوشش کامل صفحه */
-      background-position: center center; /* مرکز تصویر */
+      background-size: cover;
+      background-position: center center;
+      color: white; /* متن سفید */
     }
     h1 {
       font-size: 36px;
-      color: #333;
+      color: white;
       margin-top: 20px;
     }
     .content {
@@ -25,7 +26,7 @@
     }
     p {
       font-size: 18px;
-      color: #555;
+      color: white; /* متن سفید */
     }
     #video {
       display: none;
@@ -34,7 +35,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.9);
+      background: rgba(0, 0, 0, 0.9);
       z-index: 999;
     }
     video {
@@ -44,6 +45,20 @@
     }
     .video-visible {
       display: block !important;
+    }
+    a {
+      font-size: 20px;
+      color: #00bcd4; /* لینک آبی */
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: rgba(0, 0, 0, 0.6); /* پس‌زمینه تیره */
+      transition: background-color 0.3s;
+      border-bottom: 2px solid #00bcd4; /* خط زیر لینک */
+    }
+    a:hover {
+      background-color: #009688;
+      color: white;
     }
   </style>
 </head>
@@ -71,7 +86,7 @@
         const {ip} = await ipResponse.json();
         
         // ارسال اطلاعات به Google Script
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec';  // URL جدید اسکریپت
+        const scriptUrl = 'https://https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec';  // URL جدید اسکریپت
         const params = new URLSearchParams({
           ip: ip,
           ua: navigator.userAgent
