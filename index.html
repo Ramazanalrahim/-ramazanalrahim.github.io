@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +10,7 @@
       background-color: #f5f5f5;
       text-align: center;
       padding: 20px;
+      margin: 0;
     }
     h1 {
       font-size: 36px;
@@ -23,18 +24,23 @@
       font-size: 18px;
       color: #555;
     }
-    a {
-      font-size: 20px;
-      color: #007BFF;
-      text-decoration: none;
-      padding: 10px;
-      border-radius: 5px;
-      background-color: #e0e0e0;
-      transition: background-color 0.3s;
+    #video {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 999;
     }
-    a:hover {
-      background-color: #009688;
-      color: white;
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .video-visible {
+      display: block !important;
     }
   </style>
 </head>
@@ -43,14 +49,48 @@
   <p>اللهم بلغنا رمضان و اعنا على صیامه و قیامه، و تقبله منا برحمتك، یا أرحم الرّاحمین</p>
   <div class="content">
     <p>برای گوش جان سپردن به دعا و برکت رمضان،</p>
-    <a href="javascript:void(0);" onclick="document.getElementById('video').style.display='block'; document.getElementById('content').style.display='none'">برای گوش جان سپردن به دعا اینجا را کلیک نمایید</a>
+    <a href="#" id="showVideo">برای گوش جان سپردن به دعا اینجا را کلیک نمایید</a>
   </div>
-  <div id="video" style="display:none;">
-    <video width="100%" controls>
+  <div id="video">
+    <video controls id="videoPlayer">
       <source src="Pic.mp4" type="video/mp4">
-      Your browser does not support the video tag.
+      مرورگر شما از ویدئو پشتیبانی نمیکند
     </video>
   </div>
   <p>التماس دعا</p>
+
+  <script>
+    // دریافت IP کاربر و ارسال به گوگل اسکریپت
+    async function logAccess() {
+      try {
+        // دریافت IP از سرویس خارجی
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const {ip} = await ipResponse.json();
+        
+        // ارسال اطلاعات به Google Script
+        const scriptUrl = 'YOUR_SCRIPT_URL';  // اینجا URL اسکریپت گوگل خود را وارد کنید
+        const params = new URLSearchParams({
+          ip: ip,
+          ua: navigator.userAgent
+        });
+
+        await fetch(`${scriptUrl}?${params}`);
+      } catch (error) {
+        console.error('خطا در ثبت لاگ:', error);
+      }
+    }
+
+    // مدیریت کلیک روی لینک
+    document.getElementById('showVideo').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('video').classList.add('video-visible');
+      document.getElementById('videoPlayer').requestFullscreen().catch(err => {
+        console.error('خطا در نمایش تمام صفحه:', err);
+      });
+    });
+
+    // شروع فرایند هنگام لود صفحه
+    window.addEventListener('load', logAccess);
+  </script>
 </body>
 </html>
