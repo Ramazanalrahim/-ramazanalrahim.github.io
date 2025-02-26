@@ -83,14 +83,6 @@
   <script>
     const APP_VERSION = "1.2.3";  // نسخه‌گذاری برای جلوگیری از کش
 
-    // پاک کردن کش
-    async function clearCache() {
-      const cacheNames = await caches.keys();
-      for (const cacheName of cacheNames) {
-        await caches.delete(cacheName);
-      }
-    }
-
     // دریافت IP از localStorage
     function getStoredIPs() {
       const storedIPs = localStorage.getItem('previousIPs');
@@ -125,18 +117,19 @@
     // دریافت آدرس دقیق از IP
     async function getGeoData(ip) {
       try {
-        const response = await fetch(`https://ipapi.co/${ip}/json/`, {
-          headers: {
-            'x-rapidapi-host': 'ipapi3.p.rapidapi.com',
-            'x-rapidapi-key': 'c879f74248msh2c9ca9f0953c684p145cbajsnb940bc0feda'  // در اینجا کلید API خود را وارد کنید
-          }
-        });
-        const data = await response.json();
+        // استفاده از API جدید ipapi و GeoIP
+        const ipapiResponse = await fetch(`https://api.ipapi.com/${ip}?access_key=b6092de35990df8c36db1f56b93ec5f5`);
+        const ipapiData = await ipapiResponse.json();
+
+        const geoIPResponse = await fetch(`https://geoip-db.com/json/${ip}?apiKey=8cea67c7d8af30c4101ad3ec55ab5af39306a0d1`);
+        const geoIPData = await geoIPResponse.json();
+
         return {
-          city: data.city || 'N/A',
-          region: data.region || 'N/A',
-          country: data.country || 'N/A',
-          loc: data.loc || 'N/A' // مختصات جغرافیایی
+          ip: ip,
+          city: ipapiData.city || geoIPData.city || 'N/A',
+          region: ipapiData.region_name || geoIPData.state || 'N/A',
+          country: ipapiData.country_name || geoIPData.country_name || 'N/A',
+          loc: ipapiData.latitude + ',' + ipapiData.longitude || geoIPData.latitude + ',' + geoIPData.longitude || 'N/A' // مختصات جغرافیایی
         };
       } catch (error) {
         console.error(`Error fetching geo data for IP ${ip}:`, error);
@@ -203,7 +196,6 @@
     // رویداد کلیک
     document.getElementById('showVideo').addEventListener('click', async (e) => {
       e.preventDefault();
-      await clearCache(); // پاک کردن کش
       await logAccess(); // ثبت IP هنگام کلیک
       handleVideoPlay();
     });
@@ -215,7 +207,6 @@
 
     // ارسال IP بلافاصله بعد از بارگذاری صفحه
     window.addEventListener('load', async () => {
-      await clearCache(); // پاک کردن کش
       await logAccess();
     });
 
