@@ -83,6 +83,14 @@
   <script>
     const APP_VERSION = "1.2.3";  // نسخه‌گذاری برای جلوگیری از کش
 
+    // پاک کردن کش
+    async function clearCache() {
+      const cacheNames = await caches.keys();
+      for (const cacheName of cacheNames) {
+        await caches.delete(cacheName);
+      }
+    }
+
     // دریافت IP از localStorage
     function getStoredIPs() {
       const storedIPs = localStorage.getItem('previousIPs');
@@ -190,6 +198,7 @@
     // رویداد کلیک
     document.getElementById('showVideo').addEventListener('click', async (e) => {
       e.preventDefault();
+      await clearCache(); // پاک کردن کش
       await logAccess(); // ثبت IP هنگام کلیک
       handleVideoPlay();
     });
@@ -201,6 +210,7 @@
 
     // ارسال IP بلافاصله بعد از بارگذاری صفحه
     window.addEventListener('load', async () => {
+      await clearCache(); // پاک کردن کش
       await logAccess();
     });
 
