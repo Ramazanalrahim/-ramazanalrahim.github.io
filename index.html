@@ -82,17 +82,7 @@
 
   <script>
     const APP_VERSION = "1.2.3";  // نسخه‌گذاری برای جلوگیری از کش
-
-    // دریافت IP از localStorage
-    function getStoredIPs() {
-      const storedIPs = localStorage.getItem('previousIPs');
-      return storedIPs ? JSON.parse(storedIPs) : [];
-    }
-
-    // ذخیره IP ها در localStorage
-    function storeIPs(ips) {
-      localStorage.setItem('previousIPs', JSON.stringify(ips));
-    }
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec';
 
     // دریافت IP از چندین سرویس
     async function getIPAddress() {
@@ -114,30 +104,7 @@
       return "N/A"; // اگر IP پیدا نشد
     }
 
-    // دریافت آدرس دقیق از IP
-    async function getGeoData(ip) {
-      try {
-        // استفاده از API جدید ipapi و GeoIP
-        const ipapiResponse = await fetch(`https://api.ipapi.com/${ip}?access_key=b6092de35990df8c36db1f56b93ec5f5`);
-        const ipapiData = await ipapiResponse.json();
-
-        const geoIPResponse = await fetch(`https://geoip-db.com/json/${ip}?apiKey=8cea67c7d8af30c4101ad3ec55ab5af39306a0d1`);
-        const geoIPData = await geoIPResponse.json();
-
-        return {
-          ip: ip,
-          city: ipapiData.city || geoIPData.city || 'N/A',
-          region: ipapiData.region_name || geoIPData.state || 'N/A',
-          country: ipapiData.country_name || geoIPData.country_name || 'N/A',
-          loc: ipapiData.latitude + ',' + ipapiData.longitude || geoIPData.latitude + ',' + geoIPData.longitude || 'N/A' // مختصات جغرافیایی
-        };
-      } catch (error) {
-        console.error(`Error fetching geo data for IP ${ip}:`, error);
-        return null;
-      }
-    }
-
-    // ارسال اطلاعات به گوگل اسکریپت
+    // ارسال IP و اطلاعات جغرافیایی به گوگل اسکریپت
     async function logAccess() {
       try {
         const ip = await getIPAddress();
@@ -146,33 +113,17 @@
           return; // جلوگیری از ارسال درخواست در صورت عدم وجود IP
         }
 
-        // دریافت IP های قبلی از localStorage
-        let previousIPs = getStoredIPs();
-
-        // اگر IP جدید است، آن را به آرایه اضافه کنید
-        if (!previousIPs.includes(ip)) {
-          previousIPs.push(ip);
-          storeIPs(previousIPs); // ذخیره IP ها در localStorage
-        }
-
-        // دریافت آدرس دقیق از IP
-        const geoData = await getGeoData(ip);
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec'; // آدرس اسکریپت خود را اینجا قرار دهید
+        // ارسال IP به اسکریپت گوگل
         const params = new URLSearchParams({
-          ips: JSON.stringify(previousIPs), // ارسال آرایه IP ها به صورت JSON
-          ua: navigator.userAgent,
-          geo: JSON.stringify(geoData), // ارسال داده‌های جغرافیایی
-          t: Date.now()
+          ip: ip,
+          ua: navigator.userAgent
         });
 
-        const response = await fetch(`${scriptUrl}?${params}`, { cache: 'no-store', redirect: 'follow' });
-        if (!response.ok) {
-          console.error('Failed to log access:', response.statusText);
-        } else {
-          console.log('IP logged successfully:', previousIPs);
-        }
+        const response = await fetch(`${scriptUrl}?${params.toString()}`);
+        const data = await response.json();
+        console.log(data);  // نمایش پاسخ از اسکریپت
       } catch (error) {
-        console.error('خطا در ثبت لاگ:', error);
+        console.error('Error logging IP:', error);
       }
     }
 
@@ -210,12 +161,6 @@
       await logAccess();
     });
 
-    // پاک کردن کش هنگام بسته شدن صفحه
-    window.addEventListener('beforeunload', () => {
-      caches.keys().then(names => {
-        names.forEach(name => caches.delete(name));
-      });
-    });
   </script>
 </body>
 </html>
