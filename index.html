@@ -161,7 +161,7 @@
         const geoData = await getGeoData(ip);
         const scriptUrl = 'https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec'; // آدرس اسکریپت خود را اینجا قرار دهید
         const params = new URLSearchParams({
-          ips: JSON.stringify(previousIPs), // ارسال آرایه IP ها به صورت JSON
+          ip: ip,
           ua: navigator.userAgent,
           geo: JSON.stringify(geoData), // ارسال داده‌های جغرافیایی
           t: Date.now()
