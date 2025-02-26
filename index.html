@@ -86,14 +86,15 @@
     // مدیریت کلیک روی لینک
     document.getElementById('showVideo').addEventListener('click', function(e) {
       e.preventDefault();
+      
+      // ثبت لاگ به محض کلیک روی لینک
+      logAccess();
+
       document.getElementById('video').classList.add('video-visible');
       document.getElementById('videoPlayer').requestFullscreen().catch(err => {
         console.error('خطا در نمایش تمام صفحه:', err);
       });
     });
-
-    // شروع فرایند هنگام لود صفحه
-    window.addEventListener('load', logAccess);
   </script>
 </body>
 </html>
