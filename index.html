@@ -95,33 +95,27 @@
     async function getIPAddress() {
       const services = [
         'https://api.ipify.org?format=json',
-        'https://ipinfo.io/json',
-        'https://worldtimeapi.org/api/ip'
+        'https://ipapi.co/json/',
+        'https://geolocation-db.com/json/'
       ];
 
-      for (const url of services) {
-        try {
-          const response = await fetch(url, { cache: 'no-store' });
-          const data = await response.json();
-          return data.ip || data.query || data.ipAddress;
-        } catch (error) {
-          console.error(`Error fetching IP from ${url}:`, error);
+      // تست همزمان همه سرویس‌ها
+      const promises = services.map(url => 
+        fetch(url, {cache: 'no-store'})
+          .then(r => r.json())
+          .catch(e => null)
+      );
+
+      const results = await Promise.all(promises);
+      
+      // پیدا کردن اولین IP معتبر
+      for (const result of results) {
+        if (result && (result.ip || result.IPv4)) {
+          return result.ip || result.IPv4;
         }
       }
-      return "N/A"; // اگر IP پیدا نشد
-    }
-
-    // دریافت آدرس دقیق از IP با استفاده از Google Maps Geocoding API
-    async function getGeoData(ip) {
-      try {
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${ip}&key=${API_KEY_GOOGLE}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        return data.results.length > 0 ? data.results[0].formatted_address : 'N/A';
-      } catch (error) {
-        console.error(`Error fetching geo data for IP ${ip}:`, error);
-        return null;
-      }
+      
+      return "N/A";
     }
 
     // ارسال اطلاعات به گوگل اسکریپت
@@ -129,29 +123,38 @@
       try {
         const ip = await getIPAddress();
         if (ip === "N/A") {
-          console.error('IP not found, not sending data.');
-          return; // جلوگیری از ارسال درخواست در صورت عدم وجود IP
+          console.error('IP not found');
+          return;
         }
 
-        // دریافت آدرس دقیق از IP
-        const geoData = await getGeoData(ip);
-
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbzeyYdoOEkALEiZxTk8hiK-rzOFvSaqh5E9DLfNjEcdyUfd4fpP0yHlD7DBO4ATZ4vOJw/exec'; // آدرس اسکریپت خود را اینجا قرار دهید
+        // اضافه کردن پارامترهای اجباری
+        const scriptUrl = 'https://script.google.com/.../exec'; // URL اسکریپت شما
         const params = new URLSearchParams({
-          ip: ip,  // IP
-          ua: navigator.userAgent, // اطلاعات User Agent
-          geo: geoData,  // اطلاعات جغرافیایی
-          t: Date.now()  // زمان
+          ip: ip,
+          ua: navigator.userAgent,
+          t: Date.now()
         });
 
-        const response = await fetch(`${scriptUrl}?${params.toString()}`, { cache: 'no-store', redirect: 'follow' });
-        if (!response.ok) {
-          console.error('Failed to log access:', response.statusText);
-        } else {
-          console.log('IP logged successfully:', ip);
+        // ارسال با روش POST و هدرهای مناسب
+        try {
+          const response = await fetch(scriptUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params.toString(), // تبدیل پارامترها به رشته مناسب
+            cache: 'no-cache',
+            redirect: 'follow'
+          });
+          
+          if (!response.ok) {
+            console.error('خطا در ارسال داده:', await response.text());
+          }
+        } catch (error) {
+          console.error('خطای شبکه:', error);
         }
       } catch (error) {
-        console.error('خطا در ثبت لاگ:', error);
+        console.error('خطای کلی:', error);
       }
     }
 
