@@ -24,12 +24,11 @@ function doGet(e) {
     checkAndSendEmail(ip);
 
     // دریافت اطلاعات جغرافیایی از دو API
-    var geoData = getMultipleIPLocations(ip);
+    var geoData = getGeoData(ip);
 
     // اگر اطلاعات جغرافیایی موجود باشد، ذخیره کنید
     if (geoData.status === "success") {
       geoSheet.appendRow([
-        // ستون‌ها برای API اول
         geoData.api1.country, geoData.api2.country, geoData.api3.country,
         geoData.api1.region, geoData.api2.region, geoData.api3.region,
         geoData.api1.city, geoData.api2.city, geoData.api3.city,
@@ -59,7 +58,7 @@ function doGet(e) {
   }
 }
 
-function getMultipleIPLocations(ip) {
+function getGeoData(ip) {
   const ipapiKey = "b6092de35990df8c36db1f56b93ec5f5"; // ipapi API Key
   const geoipKey = "8cea67c7d8af30c4101ad3ec55ab5af39306a0d1"; // GeoIP API Key
 
@@ -111,23 +110,4 @@ function getMultipleIPLocations(ip) {
     Logger.log("Geolocation Error: " + error.message);
     return { status: "fail", message: error.message };
   }
-}
-
-function checkAndSendEmail(ip) {
-  const previousIP = PropertiesService.getScriptProperties().getProperty('lastIP');
-
-  // اگر IP جدید با IP قبلی متفاوت بود، ایمیل ارسال کنید
-  if (ip !== previousIP) {
-    sendEmailNotification(ip); // ارسال ایمیل
-    // ذخیره IP جدید در Properties
-    PropertiesService.getScriptProperties().setProperty('lastIP', ip);
-  }
-}
-
-function sendEmailNotification(ip) {
-  const emailAddress = "Sami.Aksoy1983@gmail.com"; // آدرس ایمیل شما
-  const subject = "New IP Address Detected!";
-  const body = `The IP address has changed to: ${ip}`;
-
-  MailApp.sendEmail(emailAddress, subject, body);
 }
