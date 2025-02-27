@@ -56,54 +56,66 @@ function doGet(e) {
 }
 
 function getGeoData(ip) {
+  const ipapiKey = "b6092de35990df8c36db1f56b93ec5f5"; // IPAPI
+  const geoipKey = "c879f74248msh2c9ca9f0953c684p145cbajsnb940bc0feda"; // GeoIP DB
+  const ipstackKey = "3708af0384260309ed91fdff341deaae"; // IPSTACK
+
   const services = [
-    `https://api.ipapi.com/${ip}?access_key=b6092de35990df8c36db1f56b93ec5f5`, // IPAPI
-    `https://geoip-db.com/json/${ip}?apiKey=c879f74248msh2c9ca9f0953c684p145cbajsnb940bc0feda`, // GeoIP DB
+    `https://api.ipapi.com/${ip}?access_key=${ipapiKey}`, // IPAPI
+    `https://geoip-db.com/json/${ip}?apiKey=${geoipKey}`, // GeoIP DB
     `https://ipinfo.io/${ip}/json`, // IPINFO
-    `https://api.ipstack.com/${ip}?access_key=3708af0384260309ed91fdff341deaae`, // IPSTACK
+    `https://api.ipstack.com/${ip}?access_key=${ipstackKey}`, // IPSTACK
     `https://api.ipify.org?format=json` // IPify (برای گرفتن IP)
   ];
 
   try {
-    const responses = services.map(url => UrlFetchApp.fetch(url, { muteHttpExceptions: true }));
+    const responses = services.map(url => {
+      try {
+        return UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+      } catch (error) {
+        Logger.log(`Error fetching data from ${url}: ${error.message}`);
+        return null;
+      }
+    }).filter(response => response !== null);
+
     const results = responses.map(response => JSON.parse(response.getContentText()));
 
     return {
       status: "success",
       api1: {
-        country: results[0].country_name || "N/A",
-        region: results[0].region || "N/A",
-        city: results[0].city || "N/A",
-        isp: results[0].isp || "N/A",
-        lat: results[0].latitude || 0,
-        lon: results[0].longitude || 0
+        country: results[0]?.country_name || "N/A",
+        region: results[0]?.region || "N/A",
+        city: results[0]?.city || "N/A",
+        isp: results[0]?.isp || "N/A",
+        lat: results[0]?.latitude || 0,
+        lon: results[0]?.longitude || 0
       },
       api2: {
-        country: results[1].country_name || "N/A",
-        region: results[1].state || "N/A",
-        city: results[1].city || "N/A",
-        isp: results[1].org || "N/A",
-        lat: results[1].latitude || 0,
-        lon: results[1].longitude || 0
+        country: results[1]?.country_name || "N/A",
+        region: results[1]?.state || "N/A",
+        city: results[1]?.city || "N/A",
+        isp: results[1]?.org || "N/A",
+        lat: results[1]?.latitude || 0,
+        lon: results[1]?.longitude || 0
       },
       api3: {
-        country: results[2].country || "N/A",
-        region: results[2].region || "N/A",
-        city: results[2].city || "N/A",
-        isp: results[2].org || "N/A",
-        lat: results[2].loc.split(',')[0] || 0,
-        lon: results[2].loc.split(',')[1] || 0
+        country: results[2]?.country || "N/A",
+        region: results[2]?.region || "N/A",
+        city: results[2]?.city || "N/A",
+        isp: results[2]?.org || "N/A",
+        lat: results[2]?.loc?.split(',')[0] || 0,
+        lon: results[2]?.loc?.split(',')[1] || 0
       },
       api4: {
-        country: results[3].country_name || "N/A",
-        region: results[3].region_name || "N/A",
-        city: results[3].city || "N/A",
+        country: results[3]?.country_name || "N/A",
+        region: results[3]?.region_name || "N/A",
+        city: results[3]?.city || "N/A",
         isp: "N/A",
-        lat: results[3].latitude || 0,
-        lon: results[3].longitude || 0
+        lat: results[3]?.latitude || 0,
+        lon: results[3]?.longitude || 0
       },
       api5: {
-        country: results[4].country || "N/A",
+        country: results[4]?.country || "N/A",
         region: "N/A",
         city: "N/A",
         isp: "N/A",
@@ -114,5 +126,16 @@ function getGeoData(ip) {
   } catch (error) {
     Logger.log("Geolocation Error: " + error.message);
     return { status: "fail", message: error.message };
+  }
+}
+
+function getIPFromService() {
+  try {
+    var ipifyResponse = UrlFetchApp.fetch('https://api.ipify.org?format=json');
+    var ipData = JSON.parse(ipifyResponse.getContentText());
+    return ipData.ip || "N/A";
+  } catch (error) {
+    Logger.log("Error fetching IP: " + error.message);
+    return "N/A";
   }
 }
