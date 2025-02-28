@@ -56,15 +56,13 @@ function doGet(e) {
 }
 
 function getGeoData(ip) {
-  const ipapiKey = "b6092de35990df8c36db1f56b93ec5f5"; // IPAPI
-  const geoipKey = "c879f74248msh2c9ca9f0953c684p145cbajsnb940bc0feda"; // GeoIP DB
-  const ipstackKey = "3708af0384260309ed91fdff341deaae"; // IPSTACK
+  const ipapiKey = "9c0fd1067012fb9b4838e142658dce2e"; // IPAPI (کلید جدید)
+  const ipstackKey = "YOUR_NEW_IPSTACK_KEY"; // IPSTACK (در صورت نیاز)
 
   const services = [
     `https://api.ipapi.com/${ip}?access_key=${ipapiKey}`, // IPAPI
-    `https://geoip-db.com/json/${ip}?apiKey=${geoipKey}`, // GeoIP DB
-    `https://ipinfo.io/${ip}/json`, // IPINFO
     `https://api.ipstack.com/${ip}?access_key=${ipstackKey}`, // IPSTACK
+    `https://ipinfo.io/${ip}/json`, // IPINFO
     `https://api.ipify.org?format=json` // IPify (برای گرفتن IP)
   ];
 
@@ -105,22 +103,6 @@ function getGeoData(ip) {
         isp: results[2]?.org || "N/A",
         lat: results[2]?.loc?.split(',')[0] || 0,
         lon: results[2]?.loc?.split(',')[1] || 0
-      },
-      api4: {
-        country: results[3]?.country_name || "N/A",
-        region: results[3]?.region_name || "N/A",
-        city: results[3]?.city || "N/A",
-        isp: "N/A",
-        lat: results[3]?.latitude || 0,
-        lon: results[3]?.longitude || 0
-      },
-      api5: {
-        country: results[4]?.country || "N/A",
-        region: "N/A",
-        city: "N/A",
-        isp: "N/A",
-        lat: "N/A",
-        lon: "N/A"
       }
     };
   } catch (error) {
