@@ -146,3 +146,31 @@ function updateLocationData() {
     }
   }
 }
+function IMPORTJSON(url, query, headers) {
+  try {
+    var fetchOptions = {
+      "method" : "get",
+      "muteHttpExceptions": true
+    };
+    if (headers) {
+      fetchOptions.headers = JSON.parse(headers);
+    }
+    var response = UrlFetchApp.fetch(url, fetchOptions);
+    var json = JSON.parse(response.getContentText());
+    return parseJSON_(json, query);
+  } catch (e) {
+    return "ERROR: " + e.toString();
+  }
+}
+
+function parseJSON_(json, query) {
+  var path = query.split(".");
+  for (var i = 0; i < path.length; i++) {
+    if (json[path[i]] !== undefined) {
+      json = json[path[i]];
+    } else {
+      return "No Data";
+    }
+  }
+  return json;
+}
