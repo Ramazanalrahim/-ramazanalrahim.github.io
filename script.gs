@@ -113,7 +113,7 @@ function getGeoData(ip) {
 }
 
 function getGeoDataFromAI(ip) {
-  const openaiApiKey = "your-openai-api-key"; // OpenAI Key
+  const openaiApiKey = "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"; // OpenAI Key
   const prompt = `Predict the country from the following IP data:
     IP: ${ip}`;
 
