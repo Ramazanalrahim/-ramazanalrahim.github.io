@@ -85,37 +85,67 @@ function getGeoData(ip) {
       }
     }).filter(result => result !== null);
 
+    const geoData = {
+      city: results[0]?.city || "N/A",
+      region: results[0]?.region || "N/A",
+      isp: results[0]?.org || "N/A",
+      lat: results[0]?.latitude || 0,
+      lon: results[0]?.longitude || 0
+    };
+
+    // ارسال داده‌ها به OpenAI برای پیش‌بینی کشور
+    const countryPrediction = predictCountryFromGeoData(geoData);
+
     return {
       status: "success",
-      api1: {
-        country: results[0]?.country_name || "N/A",
-        region: results[0]?.region || "N/A",
-        city: results[0]?.city || "N/A",
-        isp: results[0]?.isp || "N/A",
-        lat: results[0]?.latitude || 0,
-        lon: results[0]?.longitude || 0
-      },
-      api2: {
-        country: results[1]?.country_name || "N/A",
-        region: results[1]?.state || "N/A",
-        city: results[1]?.city || "N/A",
-        isp: results[1]?.org || "N/A",
-        lat: results[1]?.latitude || 0,
-        lon: results[1]?.longitude || 0
-      },
-      api3: {
-        country: results[2]?.country || "N/A",
-        region: results[2]?.region || "N/A",
-        city: results[2]?.city || "N/A",
-        isp: results[2]?.org || "N/A",
-        lat: results[2]?.loc?.split(',')[0] || 0,
-        lon: results[2]?.loc?.split(',')[1] || 0
-      }
+      predictedCountry: countryPrediction,
+      geo: geoData
     };
+
   } catch (error) {
     Logger.log("Geolocation Error: " + error.message);
     return { status: "fail", message: error.message };
   }
+}
+
+function predictCountryFromGeoData(geoData) {
+  const openaiApiKey = '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';
+
+  const data = {
+    "city": geoData.city || "N/A",
+    "region": geoData.region || "N/A",
+    "isp": geoData.isp || "N/A",
+    "lat": geoData.lat || 0,
+    "lon": geoData.lon || 0
+  };
+
+  const prompt = `
+    Given the following geographic data, predict the country:
+    City: ${data.city}
+    Region: ${data.region}
+    ISP: ${data.isp}
+    Latitude: ${data.lat}
+    Longitude: ${data.lon}
+    Please respond with the most likely country.
+  `;
+
+  const response = UrlFetchApp.fetch('https://api.openai.com/v1/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + openaiApiKey
+    },
+    payload: JSON.stringify({
+      model: 'gpt-3.5-turbo',  // استفاده از مدل gpt-3.5-turbo
+      prompt: prompt,
+      max_tokens: 60
+    })
+  });
+
+  const result = JSON.parse(response.getContentText());
+  const countryPrediction = result.choices[0].text.trim();
+
+  return countryPrediction;
 }
 
 function getIPFromService() {
