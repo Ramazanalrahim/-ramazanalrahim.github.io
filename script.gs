@@ -109,3 +109,40 @@ function getIPFromService() {
     return "N/A";
   }
 }
+
+function updateLocationData() {
+  // Open the spreadsheet and get the "LOGS" sheet
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var logSheet = ss.getSheetByName("LOGS");
+  
+  // Get the range of IPs in the "LOGS" sheet (assuming IPs are in column D, starting from row 2)
+  var ipRange = logSheet.getRange("D2:D" + logSheet.getLastRow());
+  var ipValues = ipRange.getValues();
+  
+  // Loop through each IP to fetch data
+  for (var i = 0; i < ipValues.length; i++) {
+    var ip = ipValues[i][0];
+    
+    if (ip) {
+      // Fetch data from the IP-API
+      var geoData = getGeoData(ip);
+      
+      if (geoData) {
+        // Update the respective columns in the "LOGS" sheet (assuming columns E, F, G, H, I, J for Country, Region, City, ISP, Latitude, Longitude)
+        logSheet.getRange(i + 2, 5).setValue(geoData.country);    // Country (Column E)
+        logSheet.getRange(i + 2, 6).setValue(geoData.region);     // Region (Column F)
+        logSheet.getRange(i + 2, 7).setValue(geoData.city);       // City (Column G)
+        logSheet.getRange(i + 2, 8).setValue(geoData.isp);        // ISP (Column H)
+        logSheet.getRange(i + 2, 9).setValue(geoData.lat);        // Latitude (Column I)
+        logSheet.getRange(i + 2, 10).setValue(geoData.lon);       // Longitude (Column J)
+        
+        // Create a clickable link for the location (Column K)
+        var locationUrl = "https://maps.google.com?q=" + geoData.lat + "," + geoData.lon;
+        logSheet.getRange(i + 2, 11).setValue('=HYPERLINK("' + locationUrl + '", "View Location")');  // Location (Column K)
+      } else {
+        Logger.log("Geo data not found for IP: " + ip);
+        logSheet.getRange(i + 2, 5, 1, 6).setValue("Data not found");  // Update with error message if data not found
+      }
+    }
+  }
+}
