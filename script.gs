@@ -143,3 +143,88 @@ function logAccess(ip, geoData) {
     geoData.message || "N/A"
   ]);
 }
+function getGeoData(ip) {
+  const services = [
+    {
+      name: "ip-api",
+      url: `https://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,lat,lon`,
+      parser: (data) => ({
+        status: data.status === "success",
+        country: data.country,
+        region: data.regionName,
+        city: data.city,
+        isp: data.isp,
+        lat: data.lat,
+        lon: data.lon
+      })
+    },
+    {
+      name: "ipinfo",
+      url: `https://ipinfo.io/${ip}/json?token=YOUR_TOKEN`,
+      parser: (data) => ({
+        status: !!data.country,
+        country: data.country,
+        region: data.region,
+        city: data.city,
+        isp: data.org,
+        lat: data.loc?.split(",")[0],
+        lon: data.loc?.split(",")[1]
+      })
+    }
+  ];
+
+  for (const service of services) {
+    try {
+      const response = UrlFetchApp.fetch(service.url, {
+        muteHttpExceptions: true,
+        headers: {"User-Agent": "Mozilla/5.0"},
+        timeout: 5000
+      });
+      
+      if (response.getResponseCode() === 200) {
+        const data = JSON.parse(response.getContentText());
+        const parsed = service.parser(data);
+        if (parsed.status) {
+          return {
+            status: "success",
+            ...parsed
+          };
+        }
+      }
+    } catch(e) {
+      Logger.log(`[${service.name}] Error: ${e}`);
+    }
+  }
+
+  return {
+    status: "fail",
+    message: "All services failed"
+  };
+}
+
+// این کدها رو بعد از ثبت داده‌ها در شیت اضافه کنید
+function processIP(ip) {
+  // استخراج بخش‌های IP
+  const ipParts = ip.split(".");
+  
+  // تشخیص IP خصوصی
+  const isPrivate = (ipParts[0] === "10" || (ipParts[0] === "172" && parseInt(ipParts[1]) >= 16 && parseInt(ipParts[1]) <= 31) || (ipParts[0] === "192" && ipParts[1] === "168"));
+
+  // شناسایی کلاس IP
+  const ipClass = ipParts[0] === "10" ? "Class A" : (ipParts[0] === "172" ? "Class B" : (ipParts[0] === "192" && ipParts[1] === "168" ? "Class C" : "Public"));
+
+  // محاسبه عددی IP
+  const ipAsNumber = ipParts.reduce((acc, part, index) => acc + parseInt(part) * Math.pow(256, 3 - index), 0);
+
+  // تشخیص ISP (مثال)
+  let isp = "Unknown";
+  if (ip.startsWith("5.")) isp = "مخابرات ایران";
+  if (ip.startsWith("37.")) isp = "شبکه پژوهش";
+
+  return {
+    isPrivate,
+    ipClass,
+    ipAsNumber,
+    isp
+  };
+}
