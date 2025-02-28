@@ -81,7 +81,6 @@
   <p>التماس دعا</p>
 
   <script>
-    // پاک کردن کش مرورگر
     async function clearCache() {
       const cacheNames = await caches.keys();
       for (const cacheName of cacheNames) {
@@ -89,92 +88,57 @@
       }
     }
 
-    // دریافت IP از سرویس‌ها
     async function getIPAddress() {
-      const services = [
-        'https://api.ipify.org?format=json',
-        'https://ipapi.co/json/',
-        'https://geolocation-db.com/json/',
-        'https://api.ipstack.com/check?access_key=YOUR_ACCESS_KEY',  // برای سرویس IP Stack
-        'https://ipinfo.io/json'  // سرویس IPinfo
-      ];
-
-      const promises = services.map(url => 
-        fetch(url, {cache: 'no-store'})
-          .then(r => r.json())
-          .catch(e => null)
-      );
-
-      const results = await Promise.all(promises);
-    
-      for (const result of results) {
-        if (result && (result.ip || result.IPv4)) {
-          return result.ip || result.IPv4;
-        }
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+      } catch (error) {
+        console.error('خطا در دریافت IP:', error);
+        return "N/A";
       }
-      return "N/A"; // در صورتی که IP پیدا نشود
     }
 
-    // ثبت اطلاعات IP و ارسال آن به Google Script
     async function logAccess() {
+      const ip = await getIPAddress();
+      if (ip === "N/A") {
+        console.error('IP not found');
+        return;
+      }
+
+      const scriptUrl = 'https://script.google.com/.../exec'; // URL اسکریپت شما
+      const params = new URLSearchParams({
+        ip: ip,
+        ua: navigator.userAgent,
+        t: Date.now()
+      });
+
       try {
-        const ip = await getIPAddress();
-        if (ip === "N/A") {
-          console.error('IP not found');
-          return;
-        }
-
-        const scriptUrl = 'https://script.google.com/.../exec'; // URL اسکریپت شما
-        const params = new URLSearchParams({
-          ip: ip,
-          ua: navigator.userAgent,
-          t: Date.now()
+        const response = await fetch(scriptUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: params.toString(),
+          cache: 'no-cache',
+          redirect: 'follow'
         });
-
-        try {
-          const response = await fetch(scriptUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: params.toString(),
-            cache: 'no-cache',
-            redirect: 'follow'
-          });
-          
-          if (!response.ok) {
-            console.error('خطا در ارسال داده:', await response.text());
-          }
-        } catch (error) {
-          console.error('خطای شبکه:', error);
+        
+        if (!response.ok) {
+          console.error('خطا در ارسال داده:', await response.text());
         }
       } catch (error) {
         console.error('خطای کلی:', error);
       }
     }
 
-    // مدیریت ویدئو
-    function handleVideoPlay() {
-      const videoElem = document.getElementById('videoPlayer');
-      videoElem.src = `Allahuma_Balighna_Ramadan.mp4?v=1.2.3`;
-      document.getElementById('video').classList.add('video-visible');
-      videoElem.play();
-    }
-
-    // رویداد کلیک
     document.getElementById('showVideo').addEventListener('click', async (e) => {
       e.preventDefault();
       await clearCache(); // پاک کردن کش
       await logAccess(); // ثبت IP هنگام کلیک
-      handleVideoPlay();
+      document.getElementById('video').classList.add('video-visible');
+      document.getElementById('videoPlayer').play();
     });
-
-    // ارسال IP بلافاصله بعد از بارگذاری صفحه
-    window.addEventListener('load', async () => {
-      await clearCache(); // پاک کردن کش
-      await logAccess();
-    });
-
   </script>
 </body>
 </html>
