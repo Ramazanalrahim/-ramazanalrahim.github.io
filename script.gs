@@ -20,7 +20,7 @@ function doGet(e) {
     logSheet.appendRow([timestamp.toISOString().split('T')[0], timestamp.toTimeString().split(' ')[0], ip, userAgent]);
     SpreadsheetApp.flush();
 
-    // دریافت اطلاعات جغرافیایی از 5 API مختلف
+    // دریافت اطلاعات جغرافیایی از سیستم‌های مختلف
     var geoData = getGeoData(ip);
 
     // اگر اطلاعات جغرافیایی موجود باشد، ذخیره کنید
@@ -56,14 +56,16 @@ function doGet(e) {
 }
 
 function getGeoData(ip) {
-  const openaiApiKey = "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";
-  const geminiKey = "AIzaSyBVveeYlKbI8V-Zrf51UuhOnELI5riQrvM"; // Google Geocoding API Key جدید
+  const googleGeocodingKey = "AIzaSyBVveeYlKbI8V-Zrf51UuhOnELI5riQrvM"; // Google Geocoding API Key جدید
+  const ipApiKey = "9c0fd1067012fb9b4838e142658dce2e"; // IPAPI Key
+  const ipInfoKey = "your-ipinfo-key"; // IPINFO Key
+  const ipifyKey = "your-ipify-key"; // IPIFY Key
 
   const services = [
-    `https://api.ipapi.com/${ip}?access_key=${openaiApiKey}`, // IPAPI
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${ip}&key=${geminiKey}`, // Google Geocoding API
-    `https://ipinfo.io/${ip}/json`, // IPINFO
-    `https://api.ipify.org?format=json` // IPify (برای گرفتن IP)
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${ip}&key=${googleGeocodingKey}`, // Google Geocoding API
+    `https://api.ipapi.com/${ip}?access_key=${ipApiKey}`, // IPAPI
+    `https://ipinfo.io/${ip}/json?token=${ipInfoKey}`, // IPINFO
+    `https://api.ipify.org?format=json`, // IPIFY
   ];
 
   try {
@@ -93,18 +95,14 @@ function getGeoData(ip) {
       lon: results[0]?.longitude || 0
     };
 
-    // اگر OpenAI خطا داد، به سراغ Geocoding API برویم
+    // اگر Google Geocoding نتایج را نداد، به سیستم جایگزین برویم
     if (!geoData.city || geoData.city === "N/A") {
-      const geoDataFromGoogle = getGeoDataFromGoogle(ip);
-      return geoDataFromGoogle;
+      const geoDataFromAI = getGeoDataFromAI(ip);
+      return geoDataFromAI;
     }
-
-    // ارسال داده‌ها به OpenAI برای پیش‌بینی کشور
-    const countryPrediction = predictCountryFromGeoData(geoData);
 
     return {
       status: "success",
-      predictedCountry: countryPrediction,
       geo: geoData
     };
 
@@ -114,26 +112,10 @@ function getGeoData(ip) {
   }
 }
 
-function predictCountryFromGeoData(geoData) {
-  const openaiApiKey = "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";
-
-  const data = {
-    "city": geoData.city || "N/A",
-    "region": geoData.region || "N/A",
-    "isp": geoData.isp || "N/A",
-    "lat": geoData.lat || 0,
-    "lon": geoData.lon || 0
-  };
-
-  const prompt = `
-    Given the following geographic data, predict the country:
-    City: ${data.city}
-    Region: ${data.region}
-    ISP: ${data.isp}
-    Latitude: ${data.lat}
-    Longitude: ${data.lon}
-    Please respond with the most likely country.
-  `;
+function getGeoDataFromAI(ip) {
+  const openaiApiKey = "your-openai-api-key"; // OpenAI Key
+  const prompt = `Predict the country from the following IP data:
+    IP: ${ip}`;
 
   const response = UrlFetchApp.fetch('https://api.openai.com/v1/completions', {
     method: 'POST',
@@ -142,7 +124,7 @@ function predictCountryFromGeoData(geoData) {
       'Authorization': 'Bearer ' + openaiApiKey
     },
     payload: JSON.stringify({
-      model: 'gpt-3.5-turbo',  // استفاده از مدل gpt-3.5-turbo
+      model: 'text-davinci-003',  // یا مدل‌های جدیدتر
       prompt: prompt,
       max_tokens: 60
     })
@@ -151,40 +133,17 @@ function predictCountryFromGeoData(geoData) {
   const result = JSON.parse(response.getContentText());
   const countryPrediction = result.choices[0].text.trim();
 
-  return countryPrediction;
-}
-
-function getGeoDataFromGoogle(ip) {
-  const geminiKey = "AIzaSyBVveeYlKbI8V-Zrf51UuhOnELI5riQrvM"; // Google API Key جدید
-  
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${ip}&key=${geminiKey}`;
-
-  try {
-    const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-    const data = JSON.parse(response.getContentText());
-
-    // بررسی وضعیت پاسخ از Google API
-    if (data.status === "OK") {
-      const geoData = {
-        city: data.results[0]?.address_components[0]?.long_name || "N/A",
-        region: data.results[0]?.address_components[1]?.long_name || "N/A",
-        isp: "N/A",
-        lat: data.results[0]?.geometry.location.lat || 0,
-        lon: data.results[0]?.geometry.location.lng || 0
-      };
-
-      return {
-        status: "success",
-        geo: geoData
-      };
-    } else {
-      Logger.log("Google Geocoding API error: " + data.status); // نمایش خطای API در صورت لزوم
-      throw new Error("Failed to fetch geolocation data from Google.");
+  return {
+    status: "success",
+    geo: {
+      city: "Unknown",
+      region: "Unknown",
+      isp: "Unknown",
+      lat: 0,
+      lon: 0,
+      predictedCountry: countryPrediction
     }
-  } catch (error) {
-    Logger.log("Google Geolocation Error: " + error.message); // لاگ خطا
-    return { status: "fail", message: error.message };
-  }
+  };
 }
 
 function getIPFromService() {
