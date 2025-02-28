@@ -26,6 +26,18 @@ function isValidIP(ip) {
   return /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
 }
 
+// دریافت IP از سرویس
+function getIPAddress() {
+  try {
+    const response = UrlFetchApp.fetch('https://api.ipify.org?format=json');
+    const data = JSON.parse(response.getContentText());
+    return data.ip;
+  } catch (error) {
+    Logger.log('Error fetching IP:', error);
+    return "N/A"; // در صورتی که نتواستیم IP را دریافت کنیم
+  }
+}
+
 // دریافت داده‌های جغرافیایی از چندین سرویس
 function getGeoData(ip) {
   const services = [
