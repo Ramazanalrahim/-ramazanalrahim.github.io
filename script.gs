@@ -76,7 +76,14 @@ function getGeoData(ip) {
       }
     }).filter(response => response !== null);
 
-    const results = responses.map(response => JSON.parse(response.getContentText()));
+    const results = responses.map(response => {
+      try {
+        return JSON.parse(response.getContentText());
+      } catch (error) {
+        Logger.log(`Error parsing JSON from response: ${error.message}`);
+        return null;
+      }
+    }).filter(result => result !== null);
 
     return {
       status: "success",
