@@ -57,7 +57,7 @@ function doGet(e) {
 
 function getGeoData(ip) {
   const openaiApiKey = "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";
-  const geminiKey = "AIzaSyB3vjDBcUC8ZAcjGCJSsQst2d2ICODbJBo";
+  const geminiKey = "AIzaSyBVveeYlKbI8V-Zrf51UuhOnELI5riQrvM"; // Google Geocoding API Key جدید
 
   const services = [
     `https://api.ipapi.com/${ip}?access_key=${openaiApiKey}`, // IPAPI
@@ -155,14 +155,14 @@ function predictCountryFromGeoData(geoData) {
 }
 
 function getGeoDataFromGoogle(ip) {
-  const geminiKey = "AIzaSyB3vjDBcUC8ZAcjGCJSsQst2d2ICODbJBo"; // Google API Key
+  const geminiKey = "AIzaSyBVveeYlKbI8V-Zrf51UuhOnELI5riQrvM"; // Google API Key جدید
   
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${ip}&key=${geminiKey}`;
 
   try {
     const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     const data = JSON.parse(response.getContentText());
-    
+
     // بررسی وضعیت پاسخ از Google API
     if (data.status === "OK") {
       const geoData = {
@@ -191,9 +191,9 @@ function getIPFromService() {
   try {
     var ipifyResponse = UrlFetchApp.fetch('https://api.ipify.org?format=json');
     var ipData = JSON.parse(ipifyResponse.getContentText());
-    return ipData.ip || "N/A";
+    return ipData.ip;
   } catch (error) {
-    Logger.log("Error fetching IP: " + error.message);
+    Logger.log('Error fetching IP: ' + error.message);
     return "N/A";
   }
 }
