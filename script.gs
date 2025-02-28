@@ -109,7 +109,7 @@ function getGeoData(ip) {
 }
 
 function predictCountryFromGeoData(geoData) {
-  const openaiApiKey = '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';
+  const openaiApiKey = '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';
 
   const data = {
     "city": geoData.city || "N/A",
