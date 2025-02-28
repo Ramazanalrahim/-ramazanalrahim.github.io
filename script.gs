@@ -10,7 +10,7 @@ function doGet(e) {
     if (!logSheet) throw new Error("❌ Sheet 'LOGS' not found!");
     if (!geoSheet) throw new Error("❌ Sheet 'GeoData' not found!");
 
-    var ip = e.parameter.ip || getIPFromService();
+    var ip = e.parameter.ip || getIPFromService();  // دریافت IP از پارامتر یا سرویس
     var userAgent = e.parameter.ua || "N/A";
 
     if (ip === "N/A") throw new Error("⛔ IP parameter missing!");
