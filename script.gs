@@ -155,14 +155,15 @@ function predictCountryFromGeoData(geoData) {
 }
 
 function getGeoDataFromGoogle(ip) {
-  const geminiKey = "AIzaSyB3vjDBcUC8ZAcjGCJSsQst2d2ICODbJBo";
+  const geminiKey = "AIzaSyB3vjDBcUC8ZAcjGCJSsQst2d2ICODbJBo"; // Google API Key
   
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${ip}&key=${geminiKey}`;
 
   try {
     const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     const data = JSON.parse(response.getContentText());
-
+    
+    // بررسی وضعیت پاسخ از Google API
     if (data.status === "OK") {
       const geoData = {
         city: data.results[0]?.address_components[0]?.long_name || "N/A",
@@ -177,10 +178,11 @@ function getGeoDataFromGoogle(ip) {
         geo: geoData
       };
     } else {
+      Logger.log("Google Geocoding API error: " + data.status); // نمایش خطای API در صورت لزوم
       throw new Error("Failed to fetch geolocation data from Google.");
     }
   } catch (error) {
-    Logger.log("Google Geolocation Error: " + error.message);
+    Logger.log("Google Geolocation Error: " + error.message); // لاگ خطا
     return { status: "fail", message: error.message };
   }
 }
