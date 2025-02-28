@@ -56,12 +56,12 @@ function doGet(e) {
 }
 
 function getGeoData(ip) {
-  const ipapiKey = "9c0fd1067012fb9b4838e142658dce2e"; // IPAPI (کلید جدید)
-  const ipstackKey = "YOUR_NEW_IPSTACK_KEY"; // IPSTACK (در صورت نیاز)
+  const openaiApiKey = "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";
+  const geminiKey = "AIzaSyB3vjDBcUC8ZAcjGCJSsQst2d2ICODbJBo";
 
   const services = [
-    `https://api.ipapi.com/${ip}?access_key=${ipapiKey}`, // IPAPI
-    `https://api.ipstack.com/${ip}?access_key=${ipstackKey}`, // IPSTACK
+    `https://api.ipapi.com/${ip}?access_key=${openaiApiKey}`, // IPAPI
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${ip}&key=${geminiKey}`, // Google Geocoding API
     `https://ipinfo.io/${ip}/json`, // IPINFO
     `https://api.ipify.org?format=json` // IPify (برای گرفتن IP)
   ];
@@ -93,6 +93,12 @@ function getGeoData(ip) {
       lon: results[0]?.longitude || 0
     };
 
+    // اگر OpenAI خطا داد، به سراغ Geocoding API برویم
+    if (!geoData.city || geoData.city === "N/A") {
+      const geoDataFromGoogle = getGeoDataFromGoogle(ip);
+      return geoDataFromGoogle;
+    }
+
     // ارسال داده‌ها به OpenAI برای پیش‌بینی کشور
     const countryPrediction = predictCountryFromGeoData(geoData);
 
@@ -109,7 +115,7 @@ function getGeoData(ip) {
 }
 
 function predictCountryFromGeoData(geoData) {
-  const openaiApiKey = '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';
+  const openaiApiKey = "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";
 
   const data = {
     "city": geoData.city || "N/A",
@@ -146,6 +152,37 @@ function predictCountryFromGeoData(geoData) {
   const countryPrediction = result.choices[0].text.trim();
 
   return countryPrediction;
+}
+
+function getGeoDataFromGoogle(ip) {
+  const geminiKey = "AIzaSyB3vjDBcUC8ZAcjGCJSsQst2d2ICODbJBo";
+  
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${ip}&key=${geminiKey}`;
+
+  try {
+    const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    const data = JSON.parse(response.getContentText());
+
+    if (data.status === "OK") {
+      const geoData = {
+        city: data.results[0]?.address_components[0]?.long_name || "N/A",
+        region: data.results[0]?.address_components[1]?.long_name || "N/A",
+        isp: "N/A",
+        lat: data.results[0]?.geometry.location.lat || 0,
+        lon: data.results[0]?.geometry.location.lng || 0
+      };
+
+      return {
+        status: "success",
+        geo: geoData
+      };
+    } else {
+      throw new Error("Failed to fetch geolocation data from Google.");
+    }
+  } catch (error) {
+    Logger.log("Google Geolocation Error: " + error.message);
+    return { status: "fail", message: error.message };
+  }
 }
 
 function getIPFromService() {
