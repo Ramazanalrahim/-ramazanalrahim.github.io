@@ -124,7 +124,7 @@ function getGeoDataFromAI(ip) {
       'Authorization': 'Bearer ' + openaiApiKey
     },
     payload: JSON.stringify({
-      model: 'text-davinci-003',  // یا مدل‌های جدیدتر
+      model: 'gpt-3.5-turbo',  // استفاده از مدل جدیدتر
       prompt: prompt,
       max_tokens: 60
     })
