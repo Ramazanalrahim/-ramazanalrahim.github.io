@@ -70,7 +70,7 @@ function getGeoData(ip) {
     },
     {
       name: "ipinfo",
-      url: `https://ipinfo.io/${ip}/json?token=867bef2dba6c40`, // Use your token
+      url: `https://ipinfo.io/${ip}/json?token=YOUR_TOKEN`, // Use your token
       parser: (data) => ({
         status: !!data.country,
         country: data.country,
