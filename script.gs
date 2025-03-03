@@ -1,9 +1,9 @@
 function doPost(e) {
-  // اطمینان از ارسال داده‌ها
+  // Ensure data is sent
   e = e || {};
   e.parameter = e.parameter || {};
 
-  const ip = e.parameter.ip || getIPAddress(); // دریافت IP از پارامتر یا از سرویس
+  const ip = e.parameter.ip || getIPAddress(); // Get IP from parameter or from service
 
   if (!isValidIP(ip)) {
     return ContentService.createTextOutput(
@@ -11,20 +11,20 @@ function doPost(e) {
     );
   }
 
-  // گرفتن داده‌های جغرافیایی با استفاده از API‌ها
+  // Get geolocation data using APIs
   const geoData = getGeoData(ip);
 
   if (geoData.status === "fail") {
-    logAccess(ip, geoData); // ثبت خطا در شیت
+    logAccess(ip, geoData); // Log error in the sheet
     return ContentService.createTextOutput(
       JSON.stringify({ status: "error", message: "Failed to get geolocation" })
     );
   }
 
-  // پردازش اطلاعات IP برای شناسایی کلاس و ISP
+  // Process IP information to identify class and ISP
   const ipInfo = processIP(ip);
 
-  // ثبت موفقیت‌آمیز اطلاعات
+  // Log successful information
   logAccess(ip, geoData, ipInfo);
 
   return ContentService.createTextOutput(
@@ -35,12 +35,12 @@ function doPost(e) {
   );
 }
 
-// اعتبارسنجی صحت IP
+// Validate IP address
 function isValidIP(ip) {
   return /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip);
 }
 
-// دریافت IP از سرویس
+// Get IP address from service
 function getIPAddress() {
   try {
     const response = UrlFetchApp.fetch("https://api.ipify.org?format=json");
@@ -48,11 +48,11 @@ function getIPAddress() {
     return data.ip;
   } catch (error) {
     Logger.log("Error fetching IP:", error);
-    return "N/A"; // در صورتی که نتواستیم IP را دریافت کنیم
+    return "N/A"; // If unable to get IP
   }
 }
 
-// دریافت داده‌های جغرافیایی از چندین سرویس
+// Get geolocation data from multiple services
 function getGeoData(ip) {
   const SERVICES = [
     {
@@ -70,7 +70,7 @@ function getGeoData(ip) {
     },
     {
       name: "ipinfo",
-      url: `https://ipinfo.io/${ip}/json?token=867bef2dba6c40`, // استفاده از توکن شما
+      url: `https://ipinfo.io/${ip}/json?token=867bef2dba6c40`, // Use your token
       parser: (data) => ({
         status: !!data.country,
         country: data.country,
@@ -83,6 +83,7 @@ function getGeoData(ip) {
     }
   ];
 
+  let validResponses = [];
   for (const service of SERVICES) {
     try {
       const response = UrlFetchApp.fetch(service.url, {
@@ -95,15 +96,21 @@ function getGeoData(ip) {
         const data = JSON.parse(response.getContentText());
         const parsed = service.parser(data);
         if (parsed.status) {
-          return {
-            status: "success",
-            ...parsed
-          };
+          validResponses.push(parsed);
         }
       }
     } catch (e) {
       Logger.log(`[${service.name}] Error: ${e}`);
     }
+  }
+
+  if (validResponses.length > 0) {
+    // If we have multiple valid responses, return the most frequent result
+    const aggregatedData = aggregateGeoData(validResponses);
+    return {
+      status: "success",
+      ...aggregatedData
+    };
   }
 
   return {
@@ -112,12 +119,32 @@ function getGeoData(ip) {
   };
 }
 
-// ذخیره‌سازی داده‌ها در شیت
+// Aggregate geolocation data from multiple services
+function aggregateGeoData(responses) {
+  const average = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+  const country = responses[0].country;
+  const region = responses[0].region;
+  const city = responses[0].city;
+  const isp = responses[0].isp;
+  const lat = average(responses.map(r => parseFloat(r.lat)));
+  const lon = average(responses.map(r => parseFloat(r.lon)));
+
+  return {
+    country,
+    region,
+    city,
+    isp,
+    lat,
+    lon
+  };
+}
+
+// Log data in the sheet
 function logAccess(ip, geoData, ipInfo) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const logSheet = ss.getSheetByName("Logs") || ss.insertSheet("Logs");
 
-  // هدرهای جدید برای ثبت اطلاعات
+  // New headers for logging information
   if (logSheet.getLastRow() === 0) {
     const headers = [
       "TIMESTAMP",
@@ -136,7 +163,7 @@ function logAccess(ip, geoData, ipInfo) {
     logSheet.appendRow(headers);
   }
 
-  // ثبت داده‌ها در شیت
+  // Log data in the sheet
   logSheet.appendRow([
     new Date(),
     ip,
@@ -153,21 +180,21 @@ function logAccess(ip, geoData, ipInfo) {
   ]);
 }
 
-// پردازش اطلاعات IP برای شناسایی کلاس و ISP
+// Process IP information to identify class and ISP
 function processIP(ip) {
-  // استخراج بخش‌های IP
+  // Extract IP parts
   const ipParts = ip.split(".");
 
-  // تشخیص IP خصوصی
+  // Identify private IP
   const isPrivate = (ipParts[0] === "10" || (ipParts[0] === "172" && parseInt(ipParts[1]) >= 16 && parseInt(ipParts[1]) <= 31) || (ipParts[0] === "192" && ipParts[1] === "168"));
 
-  // شناسایی کلاس IP
+  // Identify IP class
   const ipClass = ipParts[0] === "10" ? "Class A" : (ipParts[0] === "172" ? "Class B" : (ipParts[0] === "192" && ipParts[1] === "168" ? "Class C" : "Public"));
 
-  // محاسبه عددی IP
+  // Convert IP to numeric value
   const ipAsNumber = ipParts.reduce((acc, part, index) => acc + parseInt(part) * Math.pow(256, 3 - index), 0);
 
-  // تشخیص ISP (مثال)
+  // Identify ISP (example)
   let isp = "Unknown";
   if (ip.startsWith("5.")) isp = "مخابرات ایران";
   if (ip.startsWith("37.")) isp = "شبکه پژوهش";
